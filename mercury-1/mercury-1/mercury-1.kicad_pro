@@ -619,32 +619,8 @@
       "Root"
     ],
     [
-      "31cd0c81-16e1-4561-a3f3-7cdd0c652c38",
-      "Nvidia Jetson Orin AGX"
-    ],
-    [
-      "fc039186-3e27-44d7-89ab-474fb9cf9f12",
-      "5 Port Ethernet Switch"
-    ],
-    [
-      "a8c0daca-8775-4589-8966-a2a951640341",
-      "Sensors and Serial Multiplexers"
-    ],
-    [
       "31ac8560-d214-4457-8fb9-ea1b08afb3dc",
       "Power Subsystems"
-    ],
-    [
-      "ecd2c899-b748-4a46-89b6-53cd1ef0a98c",
-      "Raspberry Pi 4 B"
-    ],
-    [
-      "acdd7974-e298-4e3c-8b62-c874dfff5426",
-      "Science Subsystem"
-    ],
-    [
-      "176c9ae3-d000-4e8d-ad8b-683eb9fea453",
-      "Arm Subsystem"
     ]
   ],
   "text_variables": {}

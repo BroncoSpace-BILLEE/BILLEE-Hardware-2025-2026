@@ -123,9 +123,9 @@
 		)
 		(uuid "0628585d-b4f9-44ea-8d7f-c6288119b376")
 	)
-	(text "BILLEE Logic Board"
+	(text "BILLEE Power/Logic Board"
 		(exclude_from_sim no)
-		(at 34.544 17.018 0)
+		(at 40.132 16.764 0)
 		(effects
 			(font
 				(size 2.54 2.54)
@@ -248,46 +248,6 @@
 			(justify left top)
 		)
 		(uuid "bebe7c32-040c-4ef8-a5b9-c38f2f6d228e")
-	)
-	(polyline
-		(pts
-			(xy 48.006 66.548) (xy 66.802 66.548)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0290339d-0238-4481-ac53-d14624dae170")
-	)
-	(polyline
-		(pts
-			(xy 48.006 71.628) (xy 66.802 71.628)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0907adf7-f6b4-48ee-b896-e32e21eb6036")
-	)
-	(polyline
-		(pts
-			(xy 48.006 74.168) (xy 66.802 74.168)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ca43dac1-f4f5-44d6-a62f-f5023dfc187b")
-	)
-	(polyline
-		(pts
-			(xy 48.006 69.088) (xy 66.802 69.088)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e7a101b6-933a-4c14-9705-d5dcded9e074")
 	)
 	(image
 		(at 279.4 87.122)
@@ -3520,50 +3480,8 @@
 		)
 	)
 	(sheet
-		(at 30.48 92.964)
-		(size 25.146 8.89)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0.0000)
-		)
-		(uuid "176c9ae3-d000-4e8d-ad8b-683eb9fea453")
-		(property "Sheetname" "Arm Subsystem"
-			(at 35.306 97.917 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "untitled.kicad_sch"
-			(at 30.48 102.4386 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(page "8")
-				)
-			)
-		)
-	)
-	(sheet
-		(at 25.4 65.405)
-		(size 22.606 11.049)
+		(at 69.596 67.437)
+		(size 22.86 11.303)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -3577,7 +3495,7 @@
 		)
 		(uuid "31ac8560-d214-4457-8fb9-ea1b08afb3dc")
 		(property "Sheetname" "Power Subsystems"
-			(at 27.94 71.374 0)
+			(at 72.136 73.406 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3586,7 +3504,7 @@
 			)
 		)
 		(property "Sheetfile" "power.kicad_sch"
-			(at 25.4 94.5646 0)
+			(at 69.596 96.5966 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3599,216 +3517,6 @@
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(page "5")
-				)
-			)
-		)
-	)
-	(sheet
-		(at 82.55 93.091)
-		(size 23.114 8.89)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0.0000)
-		)
-		(uuid "31cd0c81-16e1-4561-a3f3-7cdd0c652c38")
-		(property "Sheetname" "Nvidia Jetson Orin AGX"
-			(at 82.804 98.171 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "jbreakout.kicad_sch"
-			(at 82.55 102.5656 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(page "2")
-				)
-			)
-		)
-	)
-	(sheet
-		(at 103.124 66.04)
-		(size 30.988 8.89)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0.0000)
-		)
-		(uuid "a8c0daca-8775-4589-8966-a2a951640341")
-		(property "Sheetname" "Sensors and Serial Multiplexers"
-			(at 103.124 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "sensors.kicad_sch"
-			(at 103.124 75.5146 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(page "4")
-				)
-			)
-		)
-	)
-	(sheet
-		(at 59.182 92.964)
-		(size 19.558 8.89)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0.0000)
-		)
-		(uuid "acdd7974-e298-4e3c-8b62-c874dfff5426")
-		(property "Sheetname" "Science Subsystem"
-			(at 59.944 97.917 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "subs.kicad_sch"
-			(at 59.182 102.4386 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(page "7")
-				)
-			)
-		)
-	)
-	(sheet
-		(at 66.802 65.913)
-		(size 26.035 9.525)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0.0000)
-		)
-		(uuid "ecd2c899-b748-4a46-89b6-53cd1ef0a98c")
-		(property "Sheetname" "Raspberry Pi 4 B"
-			(at 71.12 71.374 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "rp4b.kicad_sch"
-			(at 66.802 76.0226 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(page "6")
-				)
-			)
-		)
-	)
-	(sheet
-		(at 108.712 92.964)
-		(size 21.844 8.89)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0.0000)
-		)
-		(uuid "fc039186-3e27-44d7-89ab-474fb9cf9f12")
-		(property "Sheetname" "5 Port Ethernet Switch"
-			(at 108.712 97.917 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "switch.kicad_sch"
-			(at 108.712 102.4386 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(page "3")
 				)
 			)
 		)
