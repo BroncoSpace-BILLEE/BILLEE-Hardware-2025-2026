@@ -11787,6 +11787,16 @@
 		)
 		(uuid "1936a2f2-0faf-46ff-aca5-b99e78668a97")
 	)
+	(wire
+		(pts
+			(xy 199.39 173.99) (xy 199.39 198.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1941771d-9dd8-4fa2-a99e-7ab696fe72f5")
+	)
 	(polyline
 		(pts
 			(xy 56.007 327.914) (xy 57.277 329.184)
@@ -13376,16 +13386,6 @@
 			(type default)
 		)
 		(uuid "8d84724d-9791-4f1c-acd8-c93583129654")
-	)
-	(wire
-		(pts
-			(xy 199.39 173.99) (xy 199.39 198.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8e9b4b36-e094-4da8-8289-7fdb5171369e")
 	)
 	(wire
 		(pts
@@ -22674,6 +22674,28 @@
 			)
 		)
 	)
+	(global_label "PI_+5V"
+		(shape input)
+		(at 147.32 261.62 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "08bad8c0-96f6-4ead-a3ca-0d770619719d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 137.6219 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "GND_Jetson"
 		(shape input)
 		(at 55.245 255.27 0)
@@ -22762,28 +22784,6 @@
 			)
 		)
 	)
-	(global_label "MAX_VCC"
-		(shape input)
-		(at 78.74 163.83 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "264daaa8-f908-42bb-8419-7602ae10ced8")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 90.0709 163.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "+20V_Jetson"
 		(shape input)
 		(at 109.22 106.68 0)
@@ -22841,6 +22841,28 @@
 		(uuid "2e936481-e3cb-4641-8cc4-b0c95f3e2430")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 145.9676 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PI_+5V"
+		(shape input)
+		(at 265.43 185.42 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "3976ac07-e669-45a5-bd26-5778491fea0a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 255.7319 185.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22956,28 +22978,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MAX_VCC"
-		(shape input)
-		(at 135.89 185.42 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "5b1ec435-0993-4dee-aa71-7c0d1466881d")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 124.5591 185.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -23180,28 +23180,6 @@
 			)
 		)
 	)
-	(global_label "Jetson_+5V"
-		(shape input)
-		(at 213.36 261.62 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "86344922-fd67-446a-9abf-d9a7274ffe55")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 199.4287 261.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "+22.2V_Arm{slash}Science_OUT"
 		(shape input)
 		(at 248.92 328.93 0)
@@ -23356,28 +23334,6 @@
 			)
 		)
 	)
-	(global_label "MAX_VCC"
-		(shape input)
-		(at 199.39 185.42 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "9ea52c1b-46a8-4803-b126-839105a3b632")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 188.0591 185.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "GND_Comms"
 		(shape input)
 		(at 48.26 375.92 0)
@@ -23440,6 +23396,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PI_+5V"
+		(shape input)
+		(at 199.39 185.42 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "a5fec8e8-959e-4aed-914c-ae62365659f6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 189.6919 185.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -23686,28 +23664,6 @@
 			)
 		)
 	)
-	(global_label "MAX_VCC"
-		(shape input)
-		(at 265.43 184.15 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "cdf7a96f-d10e-4b74-b756-85dd335d7b5b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 254.0991 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "+22.2V_Arm{slash}Science_OUT"
 		(shape input)
 		(at 242.57 383.54 0)
@@ -23770,6 +23726,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PI_+5V"
+		(shape input)
+		(at 135.89 185.42 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "dee5d801-c2c2-4276-b42d-bb6cc7f71631")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 126.1919 185.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -23906,9 +23884,9 @@
 			)
 		)
 	)
-	(global_label "Jetson_+5V"
+	(global_label "PI_+5V"
 		(shape input)
-		(at 147.32 261.62 180)
+		(at 213.36 261.62 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -23916,9 +23894,9 @@
 			)
 			(justify right)
 		)
-		(uuid "f709dc25-f08b-4de3-a265-db764c07f9cb")
+		(uuid "f77359bd-f211-44e6-8700-acf30ba04f7f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 133.3887 261.62 0)
+			(at 203.6619 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28569,15 +28547,16 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 140.97 292.1 0)
+		(at 207.01 292.1 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "615d05e8-0681-41fc-8c81-525c3d711173")
-		(property "Reference" "#PWR052"
-			(at 140.97 298.45 0)
+		(fields_autoplaced yes)
+		(uuid "6307ca8f-999b-4aa5-9ff3-7eacf4790664")
+		(property "Reference" "#PWR053"
+			(at 207.01 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28585,8 +28564,8 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "Jetson_GND"
-			(at 141.224 295.91 0)
+		(property "Value" "GND"
+			(at 207.01 297.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28594,7 +28573,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 140.97 292.1 0)
+			(at 207.01 292.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28603,7 +28582,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 140.97 292.1 0)
+			(at 207.01 292.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28612,7 +28591,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 140.97 292.1 0)
+			(at 207.01 292.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28621,12 +28600,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "bf1e1f37-e77a-4321-843d-9e2a632995a5")
+			(uuid "4476a25c-10d7-4348-ae7f-7997a7a4e881")
 		)
 		(instances
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "#PWR052")
+					(reference "#PWR053")
 					(unit 1)
 				)
 			)
@@ -29269,6 +29248,72 @@
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "U24")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 140.97 292.1 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6db11b94-55a1-42fd-b696-72aeb3b317fa")
+		(property "Reference" "#PWR052"
+			(at 140.97 298.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 140.97 297.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 140.97 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 140.97 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 140.97 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "da87edad-7786-415a-88ea-aa1ee0d16f46")
+		)
+		(instances
+			(project "mercury-1"
+				(path "/1b548578-061f-412b-9a17-10125f836cd9"
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -31746,71 +31791,6 @@
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "#PWR050")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 207.01 292.1 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a19720ad-4ea4-4456-a5ab-b12420927a61")
-		(property "Reference" "#PWR053"
-			(at 207.01 298.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "Jetson_GND"
-			(at 207.01 296.164 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 207.01 292.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 207.01 292.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 207.01 292.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "995500c1-0726-4892-a256-94d608a36210")
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "#PWR053")
 					(unit 1)
 				)
 			)
