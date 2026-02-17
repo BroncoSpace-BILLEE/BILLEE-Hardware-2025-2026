@@ -30554,7 +30554,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://avatarroboticparts.com/harmonic-robot/ph-series/P-robot-joint.html"
 			(at 236.855 391.16 0)
 			(effects
 				(font
@@ -35566,7 +35566,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://avatarroboticparts.com/harmonic-robot/ph-series/P-robot-joint.html"
 			(at 236.855 372.11 0)
 			(effects
 				(font
