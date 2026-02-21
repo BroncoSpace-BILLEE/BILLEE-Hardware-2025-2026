@@ -4969,191 +4969,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "logic_board:FGA-32124500-G1166"
-			(pin_names
-				(offset 0)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "M"
-				(at 2.54 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left)
-				)
-			)
-			(property "Value" "FGA-32124500-G1166"
-				(at 2.54 -5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 -2.286 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.omc-stepperonline.com/brushed-12v-dc-gear-motor-60kg-cm-3rpm-w-1166-1-rectangular-spur-gearbox-fga-32124500-g1166"
-				(at 0 -2.286 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "FGA-32124500-G1166"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "DC Motor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "PinHeader*P2.54mm* TerminalBlock*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "FGA-32124500-G1166_0_0"
-				(polyline
-					(pts
-						(xy -1.27 -3.302) (xy -1.27 0.508) (xy 0 -2.032) (xy 1.27 0.508) (xy 1.27 -3.302)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "FGA-32124500-G1166_0_1"
-				(polyline
-					(pts
-						(xy 0 2.032) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 1.7272) (xy 0 2.0828)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(circle
-					(center 0 -1.524)
-					(radius 3.2512)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -4.7752) (xy 0 -5.1816)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -7.62) (xy 0 -7.112)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "FGA-32124500-G1166_1_1"
-				(pin passive line
-					(at 0 5.08 270)
-					(length 2.54)
-					(name "+"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -7.62 90)
-					(length 2.54)
-					(name "-"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "logic_board:JetsonGPIO"
 			(pin_names
 				(offset 1.016)
@@ -7107,197 +6922,6 @@
 						)
 					)
 					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "logic_board:NP32HS"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "U"
-				(at 2.286 3.048 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "5k (8mm Bore)"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://p3america.com/np32hs-series/?searchid=67683&search_query=RH24PC+Series+8mm"
-				(at 0.254 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "5k (8mm Bore)"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "NP32HS_0_1"
-				(polyline
-					(pts
-						(xy 0 2.54) (xy 0 2.286)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 2.286) (xy 1.016 1.905) (xy 0 1.524) (xy -1.016 1.143) (xy 0 0.762)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0.762) (xy 1.016 0.381) (xy 0 0) (xy -1.016 -0.381) (xy 0 -0.762)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -0.762) (xy 1.016 -1.143) (xy 0 -1.524) (xy -1.016 -1.905) (xy 0 -2.286)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -2.286) (xy 0 -2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.143 0) (xy 2.286 0.508) (xy 2.286 -0.508) (xy 1.143 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 0) (xy 1.524 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "NP32HS_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 1.27)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -10785,18 +10409,6 @@
 		(uuid 435fe67d-3c7a-4932-a768-7e8f5cad4b07)
 	)
 	(rectangle
-		(start 236.855 320.675)
-		(end 298.45 357.505)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 5243129c-0bea-4007-ad7f-f0da1938a42f)
-	)
-	(rectangle
 		(start 27.178 348.488)
 		(end 89.408 395.986)
 		(stroke
@@ -10955,16 +10567,6 @@
 			)
 		)
 		(uuid "259588e2-3a91-4b42-a996-7a8b2fed0e9a")
-	)
-	(text "Analog Encoders for Axis 4,5"
-		(exclude_from_sim no)
-		(at 252.095 323.215 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "2e1caf51-53f2-4a2c-839b-074434012a8c")
 	)
 	(text "CAN ARM Motors (Axis 2,3)"
 		(exclude_from_sim no)
@@ -11601,8 +11203,8 @@
 		(uuid "094722c4-1864-4c7a-b0d6-eca664bf7fd4")
 	)
 	(no_connect
-		(at 308.61 316.865)
-		(uuid "0a130439-4414-4162-811d-3876e87170a2")
+		(at 313.055 332.74)
+		(uuid "098aeec2-90dd-4b94-a8de-d0764f1ce436")
 	)
 	(no_connect
 		(at 34.925 297.18)
@@ -11649,12 +11251,20 @@
 		(uuid "144f04ff-cd19-440e-9afe-76c17209d2c4")
 	)
 	(no_connect
+		(at 313.055 317.5)
+		(uuid "17f8f75a-338f-49c3-ab23-bfe03eedae4e")
+	)
+	(no_connect
 		(at 527.05 254)
 		(uuid "19d616b2-b685-4917-9907-25d923275c30")
 	)
 	(no_connect
 		(at 78.74 207.01)
 		(uuid "1a43c1aa-7061-4e95-b4c7-b1944c64b46f")
+	)
+	(no_connect
+		(at 313.055 325.12)
+		(uuid "1c870924-e8bc-4a11-bb93-84a4804ba34a")
 	)
 	(no_connect
 		(at 27.94 207.01)
@@ -11785,10 +11395,6 @@
 		(uuid "5eb08914-572a-4253-9b1f-05dab5af7940")
 	)
 	(no_connect
-		(at 308.61 334.645)
-		(uuid "60957ce9-94a2-4f25-a0c0-50fbc77c3235")
-	)
-	(no_connect
 		(at 177.165 302.26)
 		(uuid "60a36720-4aa8-48c2-937c-02823c47cd8f")
 	)
@@ -11821,14 +11427,6 @@
 		(uuid "6a6cfced-6fd7-4241-a22b-ced538fae429")
 	)
 	(no_connect
-		(at 308.61 324.485)
-		(uuid "6b031a6c-9b8f-4ada-af93-cd0b37a2218e")
-	)
-	(no_connect
-		(at 308.61 314.325)
-		(uuid "6c16ae6e-1508-46ee-a41a-d2fff4326f3d")
-	)
-	(no_connect
 		(at 27.94 184.15)
 		(uuid "6c2c0ee8-2732-42d3-8157-81eda385e0a2")
 	)
@@ -11855,10 +11453,6 @@
 	(no_connect
 		(at 109.22 104.14)
 		(uuid "78e255a3-1924-48f4-a907-bfaa5efed6af")
-	)
-	(no_connect
-		(at 308.61 332.105)
-		(uuid "79aa59aa-e115-4e58-bc3a-e09faa1169b2")
 	)
 	(no_connect
 		(at 27.94 201.93)
@@ -12005,6 +11599,10 @@
 		(uuid "af05a8e3-1b03-430b-bba7-077b3482fa55")
 	)
 	(no_connect
+		(at 313.055 322.58)
+		(uuid "b3483591-59fc-4c16-abec-7142ebc89b59")
+	)
+	(no_connect
 		(at 177.165 322.58)
 		(uuid "b39f171c-25a7-41e5-9d55-a62a5fbf3995")
 	)
@@ -12049,16 +11647,20 @@
 		(uuid "c505321d-1eff-467e-aa29-7445c3216f67")
 	)
 	(no_connect
-		(at 308.61 321.945)
-		(uuid "c8c2e2e9-72f7-42ea-b1a6-f5f4956f5459")
-	)
-	(no_connect
 		(at 78.74 212.09)
 		(uuid "c93fdb15-17ea-467e-b21e-c505728c57b1")
 	)
 	(no_connect
 		(at 212.725 287.02)
 		(uuid "c9e7baa0-4b3f-4a0b-8a95-a13574b2503e")
+	)
+	(no_connect
+		(at 313.055 327.66)
+		(uuid "cbd35a0c-41dd-4052-8cbb-f637dbe99218")
+	)
+	(no_connect
+		(at 313.055 330.2)
+		(uuid "cd6648c8-65ac-4fd6-84eb-d82cf3e24d14")
 	)
 	(no_connect
 		(at 120.65 302.26)
@@ -12093,8 +11695,8 @@
 		(uuid "d83b453e-98d9-458c-81db-42d8a71b5139")
 	)
 	(no_connect
-		(at 308.61 327.025)
-		(uuid "d9f0a475-7c27-4a9e-a3e3-4c16fe89b582")
+		(at 313.055 335.28)
+		(uuid "d8511e37-291c-4b1a-be14-a7d75c11ceb3")
 	)
 	(no_connect
 		(at 34.925 261.62)
@@ -12129,10 +11731,6 @@
 		(uuid "e498d676-68d5-4b13-879e-9e3c61fb06d1")
 	)
 	(no_connect
-		(at 308.61 319.405)
-		(uuid "e5aa7efa-dabd-4374-83ab-0d1f5a1248ad")
-	)
-	(no_connect
 		(at 177.165 330.2)
 		(uuid "ee960b3e-e099-4ae2-8bbd-640a9e8a7409")
 	)
@@ -12163,10 +11761,6 @@
 	(no_connect
 		(at 170.18 95.25)
 		(uuid "fe5cf236-570e-43ec-8694-449b3cf703aa")
-	)
-	(no_connect
-		(at 308.61 329.565)
-		(uuid "fe8e84ff-c643-4636-80dc-8fc00f1f0efa")
 	)
 	(wire
 		(pts
@@ -12517,16 +12111,6 @@
 			(type default)
 		)
 		(uuid "1631a5ad-e68a-4b22-b379-0a77f3b045d5")
-	)
-	(wire
-		(pts
-			(xy 295.275 298.45) (xy 295.275 296.545)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "16366867-60b7-4cbe-9262-c048b6650b7a")
 	)
 	(wire
 		(pts
@@ -13360,16 +12944,6 @@
 	)
 	(wire
 		(pts
-			(xy 295.275 294.005) (xy 308.61 294.005)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "57083f8b-bae6-4a26-bc22-6d2dc4faf86b")
-	)
-	(wire
-		(pts
 			(xy 76.2 82.55) (xy 76.2 83.82)
 		)
 		(stroke
@@ -13600,7 +13174,7 @@
 	)
 	(wire
 		(pts
-			(xy 295.275 290.195) (xy 295.275 294.005)
+			(xy 300.99 311.785) (xy 300.99 314.96)
 		)
 		(stroke
 			(width 0)
@@ -13617,6 +13191,16 @@
 			(type default)
 		)
 		(uuid "7501a408-b8cc-4726-8317-3fff32e1b705")
+	)
+	(wire
+		(pts
+			(xy 300.99 314.96) (xy 313.055 314.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76773d28-b39c-4bc9-a50c-4680da0ee2bb")
 	)
 	(polyline
 		(pts
@@ -14050,7 +13634,7 @@
 	)
 	(wire
 		(pts
-			(xy 289.56 298.45) (xy 295.275 298.45)
+			(xy 295.275 320.04) (xy 313.055 320.04)
 		)
 		(stroke
 			(width 0)
@@ -14130,7 +13714,7 @@
 	)
 	(wire
 		(pts
-			(xy 289.56 298.45) (xy 289.56 297.815)
+			(xy 295.275 320.04) (xy 295.275 319.405)
 		)
 		(stroke
 			(width 0)
@@ -14930,7 +14514,7 @@
 	)
 	(wire
 		(pts
-			(xy 289.56 290.195) (xy 295.275 290.195)
+			(xy 295.275 311.785) (xy 300.99 311.785)
 		)
 		(stroke
 			(width 0)
@@ -15017,16 +14601,6 @@
 			(type default)
 		)
 		(uuid "f32ee406-baa0-4484-a2ae-36d763532781")
-	)
-	(wire
-		(pts
-			(xy 295.275 296.545) (xy 308.61 296.545)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f443a75c-ac78-46b9-95d3-7113c02df22d")
 	)
 	(wire
 		(pts
@@ -24208,6 +23782,16 @@
 			"8RjvdDu9h7cK/z/jyfaJMpfDSwAAAABJRU5ErkJggg=="
 		)
 	)
+	(label "EF_5V"
+		(at 313.055 299.72 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "00556e45-cb1e-4aff-a213-99a4df94a0e2")
+	)
 	(label "CAN_L_DRIVETRAIN"
 		(at 398.78 368.3 0)
 		(effects
@@ -24228,26 +23812,6 @@
 		)
 		(uuid "02f84b63-fdbc-42ea-8d0f-21cd700801df")
 	)
-	(label "axis5_AO"
-		(at 308.61 309.245 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "04244f40-5241-4e82-a099-47282efb9f7e")
-	)
-	(label "EF_CHA"
-		(at 308.61 291.465 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "074c5138-83ee-455a-99bc-d231d683e1eb")
-	)
 	(label "EF_CHA"
 		(at 156.21 284.48 0)
 		(effects
@@ -24257,26 +23821,6 @@
 			(justify left bottom)
 		)
 		(uuid "08c7b319-3353-4c05-b3a5-825aea2069a8")
-	)
-	(label "axis5_PU"
-		(at 281.94 334.645 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "09e43761-799e-4eb3-be16-b19873c3964f")
-	)
-	(label "axis5_PU"
-		(at 308.61 306.705 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "0a96a7eb-c2d1-4771-91c5-57e1a7c9da04")
 	)
 	(label "CAN_L_DRIVETRAIN"
 		(at 506.73 368.3 0)
@@ -24317,26 +23861,6 @@
 			(justify left bottom)
 		)
 		(uuid "16d90ea5-18f9-4d61-b2dc-b0b08299940e")
-	)
-	(label "axis5_E_GND"
-		(at 281.94 349.885 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "18a404d8-b093-4507-b392-24fee012623f")
-	)
-	(label "EF_5V"
-		(at 308.61 286.385 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "1958cbdc-f6e1-4303-ba59-267bf7c85890")
 	)
 	(label "Axis_5-"
 		(at 252.095 296.545 180)
@@ -24458,25 +23982,25 @@
 		)
 		(uuid "394ad2fc-d35b-48bb-a18a-c79a9346cb5e")
 	)
-	(label "axis1_CHB"
-		(at 308.61 278.765 180)
+	(label "EF_CHA"
+		(at 313.055 304.8 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "3a15c67a-7057-44dc-b838-14fec6bb0721")
+		(uuid "3a940fa0-f538-4cb7-82b6-af114a9286cc")
 	)
-	(label "axis1_5V"
-		(at 308.61 276.225 180)
+	(label "axis4_CHB"
+		(at 313.055 292.1 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "3b1faa7f-8e10-4330-9fda-2f1bd5da9d7f")
+		(uuid "3b293a06-c009-4b8b-ae1e-9e6b8454d329")
 	)
 	(label "End_Effector-"
 		(at 252.095 311.785 180)
@@ -24498,6 +24022,16 @@
 		)
 		(uuid "41486262-6e44-4a9f-8003-f9e40eeab76c")
 	)
+	(label "EF_CHB"
+		(at 313.055 309.88 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "43252910-61e3-4e0c-96f8-cb348d468d02")
+	)
 	(label "Axis_4+"
 		(at 144.78 375.92 0)
 		(effects
@@ -24507,6 +24041,16 @@
 			(justify left bottom)
 		)
 		(uuid "45ad3065-d25e-4915-ab42-8d190bc4e29c")
+	)
+	(label "axis4_5V"
+		(at 313.055 281.94 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "46b3a4c4-020d-4e72-9af5-b2aa553bb9c1")
 	)
 	(label "Axis_4-"
 		(at 252.095 291.465 180)
@@ -24538,35 +24082,15 @@
 		)
 		(uuid "4b4e0144-c479-4028-97e1-7ca8e1583b7d")
 	)
-	(label "axis4_AO"
-		(at 308.61 301.625 180)
+	(label "axis4_CHA"
+		(at 313.055 287.02 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "4e5774c5-942e-4bda-b9ff-01d43192981a")
-	)
-	(label "axis5_AO"
-		(at 278.13 346.075 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "57776bc3-d0d6-45b5-af0d-da1cecf9639d")
-	)
-	(label "axis4_PU"
-		(at 308.61 299.085 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "5829926b-5eb0-48ad-a06a-d587680ba022")
+		(uuid "5a1a8284-64c7-4a47-a33f-231369539651")
 	)
 	(label "Axis_5+"
 		(at 252.095 294.005 180)
@@ -24587,6 +24111,16 @@
 			(justify left bottom)
 		)
 		(uuid "5fe23fe7-ef90-4e51-b88b-d7538f0e8f75")
+	)
+	(label "axis5_CHA"
+		(at 313.055 307.34 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "64d50cf4-fcea-4052-b8de-c0cf5f187f44")
 	)
 	(label "axis5_AO"
 		(at 212.725 284.48 0)
@@ -24628,16 +24162,6 @@
 		)
 		(uuid "7248496e-b992-4d79-835d-3b41716a9cb0")
 	)
-	(label "axis5_E_GND"
-		(at 308.61 311.785 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "7876a101-adb8-49f8-8c9a-c2d1ca46854c")
-	)
 	(label "CAN_H_ARM"
 		(at 241.935 372.11 0)
 		(effects
@@ -24658,16 +24182,6 @@
 		)
 		(uuid "7f875885-697c-4e74-adfb-6712eecc5afa")
 	)
-	(label "axis1_CHA"
-		(at 308.61 281.305 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "804c5176-259a-4e9b-bdaa-3e147369a647")
-	)
 	(label "Axis_1-"
 		(at 156.21 304.8 0)
 		(effects
@@ -24679,7 +24193,7 @@
 		(uuid "80b0db07-f706-4d10-bf64-11d4d94b1687")
 	)
 	(label "CAN_L_ARM"
-		(at 289.56 298.45 180)
+		(at 295.275 320.04 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -24689,7 +24203,7 @@
 		(uuid "80e7190f-89b9-4805-ab2c-dd651acb5b85")
 	)
 	(label "CAN_H_ARM"
-		(at 295.275 290.195 180)
+		(at 300.99 311.785 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -24697,6 +24211,16 @@
 			(justify right bottom)
 		)
 		(uuid "825cf491-4953-4203-9aa4-67c4fa6330ab")
+	)
+	(label "axis5_GND"
+		(at 313.055 297.18 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "879eafbb-b677-4e08-b71e-102c92accad2")
 	)
 	(label "axis1_GND"
 		(at 156.21 279.4 0)
@@ -24808,15 +24332,25 @@
 		)
 		(uuid "b6f8a4c2-8aad-4ca4-9348-da805eb276db")
 	)
-	(label "EF_CHB"
-		(at 308.61 288.925 180)
+	(label "axis5_5V"
+		(at 313.055 302.26 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "b9b7cbef-449f-42d8-8ed0-6585b54199b0")
+		(uuid "b9487fac-1ca2-4167-9d3a-5245a1dc2204")
+	)
+	(label "axis1_5V"
+		(at 313.055 279.4 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "be6e77ca-144b-485d-9bed-843352ccc6a9")
 	)
 	(label "Axis_4-"
 		(at 212.725 304.8 0)
@@ -24837,6 +24371,26 @@
 			(justify left bottom)
 		)
 		(uuid "c4e0b975-129b-4492-b070-ab4b386854ad")
+	)
+	(label "axis1_GND"
+		(at 313.055 274.32 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c5ef68ec-0c35-4618-94c3-9359b59f84b4")
+	)
+	(label "axis1_CHB"
+		(at 313.055 289.56 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c6adc97f-f81e-419b-ae07-089c57adfb97")
 	)
 	(label "CAN_L_DRIVETRAIN"
 		(at 398.78 218.44 0)
@@ -24868,35 +24422,15 @@
 		)
 		(uuid "cdea2df6-bc0e-4c92-ae7f-ca83e3f8ed6a")
 	)
-	(label "axis4_PU"
-		(at 252.095 334.645 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "d1ad0e6c-ddca-46b7-9d55-5d4dfd48497b")
-	)
-	(label "axis4_E_GND"
-		(at 308.61 304.165 180)
+	(label "axis5_CHB"
+		(at 313.055 312.42 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "d39f1b34-fb16-433b-ab3d-68f01d173a1f")
-	)
-	(label "EF_GND"
-		(at 308.61 283.845 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "d5a169d0-7e13-4e3d-9a09-cb4e5bd92833")
+		(uuid "d0377764-1806-40e9-b435-a7df062ed55a")
 	)
 	(label "CAN_H_DRIVETRAIN"
 		(at 396.24 370.84 0)
@@ -24918,16 +24452,6 @@
 		)
 		(uuid "dfb4cacc-fefd-44a4-b426-97fc1dc4c7a1")
 	)
-	(label "axis4_E_GND"
-		(at 252.095 349.885 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e5318dc3-a960-45d1-979f-500d6cbd8fae")
-	)
 	(label "axis4_PU"
 		(at 212.725 276.86 0)
 		(effects
@@ -24938,15 +24462,15 @@
 		)
 		(uuid "e9db9b4d-80b7-4c61-b831-3b550a83c8fc")
 	)
-	(label "axis4_AO"
-		(at 248.285 346.075 180)
+	(label "axis1_CHA"
+		(at 313.055 284.48 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "ef0ea49b-1ca5-4083-a097-59a637bb2123")
+		(uuid "ea2f57b0-943b-40d6-b4d4-cb748667b8e3")
 	)
 	(label "CAN_H_DRIVETRAIN"
 		(at 504.19 295.91 0)
@@ -24958,6 +24482,16 @@
 		)
 		(uuid "ef8168af-7b7e-4048-8b00-7aa890b2bd4b")
 	)
+	(label "EF_GND"
+		(at 313.055 294.64 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f78b565b-1c41-46a9-82be-da4dc1f89e42")
+	)
 	(label "Axis_1+"
 		(at 118.11 375.92 0)
 		(effects
@@ -24967,16 +24501,6 @@
 			(justify left bottom)
 		)
 		(uuid "f87eae43-7593-47f1-a934-042df915d0ed")
-	)
-	(label "axis1_GND"
-		(at 308.61 273.685 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "f95f3ca1-2551-492c-89d3-a7406af7936c")
 	)
 	(label "EF_CHB"
 		(at 156.21 287.02 0)
@@ -24997,6 +24521,16 @@
 			(justify left bottom)
 		)
 		(uuid "fc15ad55-bd47-4bd8-9721-9388dfeaeca6")
+	)
+	(label "axis4_GND"
+		(at 313.055 276.86 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "fd2a6071-336d-478a-8229-f2bba5fd4033")
 	)
 	(label "CAN_H_ARM"
 		(at 67.945 339.09 0)
@@ -26857,6 +26391,75 @@
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "U6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "logic_board:Yellowjacket 5203")
+		(at 142.24 381 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0d33435d-e3a3-4809-8988-4ad24eb3ab2e")
+		(property "Reference" "M2"
+			(at 147.32 382.2699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Yellowjacket 5203"
+			(at 135.128 390.144 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 142.24 383.286 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/?srsltid=AfmBOop0hJPw3SFHkwtuK_eQ_aN3VPcP46iypOMregJbB3z72pbZtZjr"
+			(at 142.24 383.286 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Yellowjacket 5203"
+			(at 142.24 381 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9c3b5ef1-7461-4384-97ac-d7918ce2441b")
+		)
+		(pin "2"
+			(uuid "bd10dac6-8907-4a33-bb43-f2912be7ca96")
+		)
+		(instances
+			(project "mercury-1"
+				(path "/1b548578-061f-412b-9a17-10125f836cd9"
+					(reference "M2")
 					(unit 1)
 				)
 			)
@@ -28938,7 +28541,7 @@
 	)
 	(symbol
 		(lib_id "Connector:DB25_Pins")
-		(at 316.23 304.165 0)
+		(at 320.675 304.8 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -28946,7 +28549,7 @@
 		(dnp no)
 		(uuid "4066b859-571e-40f5-b39e-1d5de5816916")
 		(property "Reference" "J14"
-			(at 315.595 266.7 0)
+			(at 312.42 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28954,7 +28557,7 @@
 			)
 		)
 		(property "Value" "DB25 Encoder Harness"
-			(at 314.96 269.24 0)
+			(at 311.785 269.24 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28962,7 +28565,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 316.23 304.165 0)
+			(at 320.675 304.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28971,7 +28574,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.amazon.com/sspa/click?ie=UTF8&spc=MTo0NzQ0MDI3ODQ4NzA4NjM3OjE3NzEwNjYzMzk6c3BfbXRmOjMwMDU3NTg4MTQ0NTEwMjo6MDo6&url=%2FJUXINICE-Solderless-Connector-Integrated-Terminal%2Fdp%2FB0DBC9Z7TL%2Fref%3Dsr_1_5_sspa%3Fcrid%3DW35BMAUID5L6%26dib%3DeyJ2IjoiMSJ9.x4q70FLxdtObMeiVuzxRBr6nyulKw9LJox0nIZd1ZzQs6de6Hhr6WbNVp1EN6e-DL8wyuitMqRRMROOXTt49V8vkJtoEw-ry2qzOw0chioW2Zo3872FpF41QRHGCngk0y9SD567JDeQ8lxXbBXVxPaL5sywvQIqi1KPgHhZVI8XeOZLzBGdy_dq40dgJprgQ8U3c5m-1hXP6H0wPaFuq9apjaGwM4oI2QJhc2zmH3F8.uIQR_iPl7XCRARjFGSfFAYLZr6TxTjkDskPF8oXeCVc%26dib_tag%3Dse%26keywords%3Ddb25%26qid%3D1771066339%26sprefix%3Ddb2%252Caps%252C194%26sr%3D8-5-spons%26sp_csd%3Dd2lkZ2V0TmFtZT1zcF9tdGY%26psc%3D1"
-			(at 316.23 304.165 0)
+			(at 320.675 304.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -28980,7 +28583,7 @@
 			)
 		)
 		(property "Description" "25-pin D-SUB connector, pins (male)"
-			(at 316.23 304.165 0)
+			(at 320.675 304.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -31110,78 +30713,6 @@
 		)
 	)
 	(symbol
-		(lib_id "logic_board:NP32HS")
-		(at 281.94 346.075 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "61bcbbef-b546-43b1-a177-40a96f2446f2")
-		(property "Reference" "U17"
-			(at 287.02 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "5k (8mm Bore)"
-			(at 276.225 330.835 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 281.94 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://p3america.com/np32hs-series/?searchid=67683&search_query=RH24PC+Series+8mm"
-			(at 281.686 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "5k (8mm Bore)"
-			(at 281.94 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "2ca46a9e-6dd4-45e8-ab4c-dd3981f73fab")
-		)
-		(pin "1"
-			(uuid "48ecca88-7ac1-44eb-88d7-af728965dda0")
-		)
-		(pin "3"
-			(uuid "7c0150cf-29d5-4348-b6c2-c3ec533377e5")
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "U17")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "logic_board:200A Relay 12V Coil")
 		(at 321.31 87.63 0)
 		(unit 1)
@@ -31752,78 +31283,6 @@
 		)
 	)
 	(symbol
-		(lib_id "logic_board:NP32HS")
-		(at 252.095 346.075 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "6d27731c-9420-4ed3-a5fe-0dd812666025")
-		(property "Reference" "U24"
-			(at 257.175 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "5k (8mm Bore)"
-			(at 246.38 330.835 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 252.095 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://p3america.com/np32hs-series/?searchid=67683&search_query=RH24PC+Series+8mm"
-			(at 251.841 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "5k (8mm Bore)"
-			(at 252.095 346.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "2326ef97-f8f1-4f86-be2c-d3291a957bec")
-		)
-		(pin "1"
-			(uuid "535d476f-41ff-4e69-8f54-1b5b9514fb75")
-		)
-		(pin "3"
-			(uuid "974560ed-dd4b-4892-a819-1c6bd18aed67")
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "U24")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 260.35 171.45 0)
 		(unit 1)
@@ -32080,75 +31539,6 @@
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "#PWR010")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_US")
-		(at 252.095 338.455 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "73a846d9-1e8a-4de4-a957-77a147dba0a4")
-		(property "Reference" "R8"
-			(at 256.54 339.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "7.5k"
-			(at 250.19 339.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 251.079 338.201 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 252.095 338.455 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor, US symbol"
-			(at 252.095 338.455 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "90076a89-8e0c-4930-b3f8-536b93b88624")
-		)
-		(pin "1"
-			(uuid "6ed299a5-bbbc-4b0c-9fa8-fdfc350633eb")
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "R8")
 					(unit 1)
 				)
 			)
@@ -33608,7 +32998,7 @@
 	)
 	(symbol
 		(lib_id "Device:R_US")
-		(at 289.56 294.005 180)
+		(at 295.275 315.595 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -33616,7 +33006,7 @@
 		(dnp no)
 		(uuid "8d6b9082-f554-4700-8b16-82c4520f1b1d")
 		(property "Reference" "R9"
-			(at 294.005 294.64 0)
+			(at 299.72 316.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33625,7 +33015,7 @@
 			)
 		)
 		(property "Value" "120"
-			(at 287.655 294.64 0)
+			(at 293.37 316.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33634,7 +33024,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 288.544 293.751 90)
+			(at 294.259 315.341 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33643,7 +33033,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 289.56 294.005 0)
+			(at 295.275 315.595 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33652,7 +33042,7 @@
 			)
 		)
 		(property "Description" "Resistor, US symbol"
-			(at 289.56 294.005 0)
+			(at 295.275 315.595 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -34846,75 +34236,6 @@
 			(project ""
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "M5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "logic_board:FGA-32124500-G1166")
-		(at 142.24 381 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "b141cc44-a4d0-4414-ac3b-5514dc693ef4")
-		(property "Reference" "M2"
-			(at 147.32 382.2699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "FGA-32124500-G1166"
-			(at 133.35 390.144 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 142.24 383.286 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.omc-stepperonline.com/brushed-12v-dc-gear-motor-60kg-cm-3rpm-w-1166-1-rectangular-spur-gearbox-fga-32124500-g1166"
-			(at 142.24 383.286 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "FGA-32124500-G1166"
-			(at 142.24 381 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9b6c9812-1157-4caa-b4c6-02502a9551f8")
-		)
-		(pin "2"
-			(uuid "ab60431c-dd2a-401c-b339-3a7b3d01faf1")
-		)
-		(instances
-			(project ""
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "M2")
 					(unit 1)
 				)
 			)
@@ -36644,75 +35965,6 @@
 		)
 	)
 	(symbol
-		(lib_id "logic_board:FGA-32124500-G1166")
-		(at 168.91 381 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "e3b4a4bd-2b81-4818-91d7-661f5e0b8a06")
-		(property "Reference" "M3"
-			(at 173.99 382.2699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "FGA-32124500-G1166"
-			(at 160.02 390.398 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 168.91 383.286 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.omc-stepperonline.com/brushed-12v-dc-gear-motor-60kg-cm-3rpm-w-1166-1-rectangular-spur-gearbox-fga-32124500-g1166"
-			(at 168.91 383.286 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "FGA-32124500-G1166"
-			(at 168.91 381 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "669c4de2-a27f-44e3-aeec-fbce69f93e84")
-		)
-		(pin "2"
-			(uuid "2f592769-c61f-4ab4-b134-f35c337b06c5")
-		)
-		(instances
-			(project ""
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "M3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "logic_board:Buck Converter")
 		(at 99.06 106.68 0)
 		(unit 1)
@@ -36795,6 +36047,75 @@
 			(project ""
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "logic_board:Yellowjacket 5203")
+		(at 168.91 381 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e8245c9f-0a1c-46d3-a854-80e387279102")
+		(property "Reference" "M3"
+			(at 173.99 382.2699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Yellowjacket 5203"
+			(at 161.798 390.144 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 168.91 383.286 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/?srsltid=AfmBOop0hJPw3SFHkwtuK_eQ_aN3VPcP46iypOMregJbB3z72pbZtZjr"
+			(at 168.91 383.286 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Yellowjacket 5203"
+			(at 168.91 381 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6d4536c9-b6ba-456a-94ab-88a5a1b950f8")
+		)
+		(pin "2"
+			(uuid "429b286c-c4f4-444e-9f2f-41fd45aec8f9")
+		)
+		(instances
+			(project "mercury-1"
+				(path "/1b548578-061f-412b-9a17-10125f836cd9"
+					(reference "M3")
 					(unit 1)
 				)
 			)
@@ -37008,75 +36329,6 @@
 			(project "mercury-1"
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "J8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_US")
-		(at 281.94 338.455 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "f425c557-a309-4ecd-92fb-4100a7511ecb")
-		(property "Reference" "R7"
-			(at 286.385 339.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "7.5k"
-			(at 280.035 339.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 280.924 338.201 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 281.94 338.455 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor, US symbol"
-			(at 281.94 338.455 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "a1b7a31e-cd2b-4d30-9665-24261ce00996")
-		)
-		(pin "1"
-			(uuid "03320924-a5e7-405b-9208-456199967ddb")
-		)
-		(instances
-			(project "mercury-1"
-				(path "/1b548578-061f-412b-9a17-10125f836cd9"
-					(reference "R7")
 					(unit 1)
 				)
 			)
