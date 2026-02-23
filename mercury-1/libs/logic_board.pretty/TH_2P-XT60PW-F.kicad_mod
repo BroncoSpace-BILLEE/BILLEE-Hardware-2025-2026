@@ -1,0 +1,234 @@
+(footprint "TH_2P-XT60PW-F"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -7 0)
+		(layer "F.SilkS")
+		(uuid "3fd72e21-4ee2-48b4-bfb4-0ae621e2fe7d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "TH_2P-XT60PW-F"
+		(at 0 7 0)
+		(layer "F.Fab")
+		(uuid "08e83b6c-9905-46d4-bf8c-251aa450cdcf")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "1745dff5-2eca-4a44-92a5-d829e17c6e4c")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "cebe3c0b-bc13-4a68-a0ae-bfc4ce2059e8")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -7.75 -12.53)
+		(end -7.75 4.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "3101e56f-aded-4d81-93b5-10e58a4e731d")
+	)
+	(fp_line
+		(start -7.75 4.75)
+		(end -4.83 4.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "d537ea33-6418-4534-8586-b511bf70f0bf")
+	)
+	(fp_line
+		(start -2.41 4.75)
+		(end 2.41 4.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "10464d0e-098a-46b1-917f-bb460ccd1b09")
+	)
+	(fp_line
+		(start 4.83 4.75)
+		(end 7.75 4.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "64fde387-8743-4b73-a55a-c7462c72fa28")
+	)
+	(fp_line
+		(start 7.75 -12.53)
+		(end -7.75 -12.53)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "134f3f1c-83ab-4185-a480-707c43fa996c")
+	)
+	(fp_line
+		(start 7.75 4.75)
+		(end 7.75 -12.53)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "e5721849-65a9-4587-ab45-cf76a6d67e89")
+	)
+	(fp_circle
+		(center -7.11 -5.03)
+		(end -6.81 -5.03)
+		(stroke
+			(width 0.6)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "c971aa2c-17cd-4864-9300-a682cdabe5b3")
+	)
+	(fp_circle
+		(center -6.99 -4.32)
+		(end -6.79 -4.32)
+		(stroke
+			(width 0.4)
+			(type solid)
+		)
+		(fill no)
+		(layer "Cmts.User")
+		(uuid "0987d4c4-42e0-411e-b88e-fdea04719882")
+	)
+	(fp_rect
+		(start -8.1788 -13.0048)
+		(end 8.0264 5.1816)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "729cfb1a-bd2a-48dc-b044-0e3c70506df9")
+	)
+	(fp_circle
+		(center -7.75 4.8)
+		(end -7.72 4.8)
+		(stroke
+			(width 0.06)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "c7f98dc4-828d-4644-b039-c57036ed58ea")
+	)
+	(fp_circle
+		(center -3.6 3)
+		(end -2.97 3)
+		(stroke
+			(width 1.25)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "79043ed5-422b-4fab-8b4e-84c80f91298d")
+	)
+	(fp_circle
+		(center 3.6 3)
+		(end 4.23 3)
+		(stroke
+			(width 1.25)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "59915d86-ca29-49a1-b61f-c595eec57184")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "555ec3e7-1146-41e4-83ec-18df69f1e122")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole oval
+		(at -6.75 -3 90)
+		(size 2.2 1.3)
+		(drill oval 1.500022 0.599999)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "97476f80-4757-4508-9bc2-ecb1ea28fd94")
+	)
+	(pad "2" thru_hole oval
+		(at 6.75 -3 90)
+		(size 2.2 1.3)
+		(drill oval 1.500022 0.599999)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "29d385a9-7ea0-4379-b066-b972e13a7f05")
+	)
+	(pad "3" thru_hole circle
+		(at -3.6 3)
+		(size 3.8 3.8)
+		(drill 2.799994)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "c2bc7d55-b1e1-4032-bb64-2e0c269e963a")
+	)
+	(pad "4" thru_hole circle
+		(at 3.6 3)
+		(size 3.8 3.8)
+		(drill 2.799994)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "6af85cbb-5add-473a-b8d0-c38de1485e6e")
+	)
+	(embedded_fonts no)
+	(model "C:/Users/Luca Lanzillotta/Downloads/billee.3dshapes/TH_2P-XT60PW-F.wrl"
+		(offset
+			(xyz -0.06 3.82 3.8)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

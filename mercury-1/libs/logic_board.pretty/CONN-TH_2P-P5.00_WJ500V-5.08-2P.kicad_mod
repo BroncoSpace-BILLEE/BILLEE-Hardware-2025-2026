@@ -1,0 +1,236 @@
+(footprint "CONN-TH_2P-P5.00_WJ500V-5.08-2P"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -4 0)
+		(layer "F.SilkS")
+		(uuid "2bd00ecb-f40b-45c5-b48f-6fb8c7f571e9")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "CONN-TH_2P-P5.00_WJ500V-5.08-2P"
+		(at 0 4 0)
+		(layer "F.Fab")
+		(uuid "8805dadc-e23b-491a-8f61-288378a17cb2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "9f4c0c0a-61b5-4e3e-b1e2-f6e3fdc2eb06")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e7e07357-2d16-41e0-a986-5bd45574da8e")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -5.68 -4.75)
+		(end -5.68 -3.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "ef019010-2224-4ec5-9946-4f05c4064463")
+	)
+	(fp_line
+		(start -5.68 -3.75)
+		(end -5.08 -4)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "0564940f-5ddd-4d26-8043-5a5aba8f6666")
+	)
+	(fp_line
+		(start -5.68 2.75)
+		(end -5.68 3.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "5015e6a4-02f7-41ed-bc63-093c3959fe14")
+	)
+	(fp_line
+		(start -5.68 3.75)
+		(end -5.08 3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "b4f6d4f6-4264-4135-909b-98470e0f72ec")
+	)
+	(fp_line
+		(start -5.08 -4.5)
+		(end -5.68 -4.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "c9a025ea-26f8-470f-9dfa-d2abeace6687")
+	)
+	(fp_line
+		(start -5.08 3)
+		(end -5.68 2.75)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "f600df79-576f-4ea1-8c2c-80681060bd5e")
+	)
+	(fp_line
+		(start -5.08 4.52)
+		(end -5.08 -5.64)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "c86a14f8-318e-4ca7-a7b9-0da47fda9a22")
+	)
+	(fp_line
+		(start 5.08 -5.64)
+		(end -5.05 -5.64)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "69d9b6b7-9ae3-40c9-a8b4-4578ca4cea64")
+	)
+	(fp_line
+		(start 5.08 4.52)
+		(end -5.05 4.52)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "4e21c6fc-53a4-4939-b4fd-ecc1e5cd5e24")
+	)
+	(fp_line
+		(start 5.08 4.52)
+		(end 5.08 -5.64)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "59d3db59-d8c8-4a90-8f8e-d71c86ce35f4")
+	)
+	(fp_rect
+		(start -5.85 -6.05)
+		(end 5.6 4.9)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "eb26da1e-6b36-455c-852e-725bd8ec36cf")
+	)
+	(fp_circle
+		(center -5.21 4.5)
+		(end -5.18 4.5)
+		(stroke
+			(width 0.06)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "7c6b7de1-6257-4d55-b376-9a11f32240f9")
+	)
+	(fp_circle
+		(center -2.54 0)
+		(end -2.26 0)
+		(stroke
+			(width 0.55)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "8d07dbc6-a324-4be3-bfc5-42f7dcb8ffd0")
+	)
+	(fp_circle
+		(center 2.54 0)
+		(end 2.82 0)
+		(stroke
+			(width 0.55)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "c56fe7ef-7fb5-45ab-8541-a0a4c35fed34")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "4fec3790-71ce-4236-aa4f-c07e11809f62")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at -2.54 0 180)
+		(size 2 2)
+		(drill 1.300023)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "4558403a-fad6-4af6-9f23-a84cc00689eb")
+	)
+	(pad "2" thru_hole circle
+		(at 2.54 0 180)
+		(size 2 2)
+		(drill 1.300023)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "3714b6dc-da2c-4b0d-afa1-20a043d697cc")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/libs/logic_board.3dshapes/CONN-TH_2P-P5.00_WJ500V-5.08-2P.step"
+		(offset
+			(xyz 2.5 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
+)

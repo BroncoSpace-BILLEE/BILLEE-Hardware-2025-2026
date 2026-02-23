@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "logic_board")(type "KiCad")(uri "${KIPRJMOD}/libs/logic_board.pretty")(options "")(descr ""))
+)
