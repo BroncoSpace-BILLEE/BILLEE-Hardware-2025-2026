@@ -1,20 +1,15 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <Basicmicro.h>
+#include <Servo.h>
 
 /*
-  IMPORTANT ARDUINO QUIRK:
-  The Arduino IDE auto-generates function prototypes near the top of the file.
-  If any function signature uses a struct/enum type that is defined later, compilation fails.
-  So: ALL structs/enums used in function signatures MUST be defined right after #includes.
-
-  ALSO IMPORTANT:
-  Your RoboClaw example uses Serial1 and Serial2. That will NOT compile on an Arduino Uno R3
-  (it only has Serial). This Drill submenu therefore requires a board with Serial1/Serial2
-  (e.g., Mega 2560, Due, etc.) OR you must rewrite it to use SoftwareSerial.
+  UNO-friendly design:
+  - USB Serial menu uses Serial (D0/D1 reserved).
+  - PCA9685 uses I2C (A4/A5).
+  - RoboClaws are driven via RC/servo PWM inputs (no UART needed).
 */
 
-// ========================= TYPES (PUT THESE FIRST) =========================
+// ========================= TYPES (MUST BE ABOVE ANY SIGNATURES) =========================
 struct ServoState {
   uint8_t channel;
   float currentDeg;
@@ -44,7 +39,11 @@ enum class MenuState {
   PUMPS_UV_MENU,
   PUMPS_UV_CONTROL,
   ACTUATOR_MENU,
-  DRILL_MENU
+  DRILL_MENU,
+  DRILL_M1,
+  DRILL_M2,
+  DRILL_M3,
+  DRILL_AUTO
 };
 
 enum class ActDir { STOP, FWD, REV };
@@ -54,7 +53,6 @@ struct ActuatorState {
   uint8_t speed; // 0..255
 };
 
-// ---- Drill / RoboClaw sequence state machine types ----
 enum DrillSeqState {
   DRILL_STEP1,
   DRILL_STEP1_STOP,
@@ -70,52 +68,72 @@ enum DrillSeqState {
   DRILL_ABORTED
 };
 
-// ========================= GLOBALS / CONFIG =========================
+struct DrillMotorState {
+  int8_t direction;   // -1 rev, 0 stop, +1 fwd
+  uint8_t speedPct;   // 0..100 magnitude
+  int16_t signedPct;  // -100..100 actual command (derived)
+};
 
-// ---- PCA9685 ----
+// ========================= PIN MAP (UNO SAFE) =========================
+// I2C: A4 SDA, A5 SCL
+
+// Linear Actuator (H-bridge, 3 pins)
+#define ACT_IN1 2
+#define ACT_IN2 3
+#define ACT_PWM 5  // PWM pin
+
+// Relays (5 pins)
+Relay relays[] = {
+  {"pump1",   6,  false},
+  {"pump2",   7,  false},
+  {"pump3",   8,  false},
+  {"stirrer", 9,  false},
+  {"uv_led",  10, false},
+};
+static const uint8_t RELAY_COUNT = sizeof(relays) / sizeof(relays[0]);
+
+// Drill PWM pins (servo pulses to RoboClaw RC inputs)
+#define DRILL_M1_PIN 4
+#define DRILL_M2_PIN 11
+#define DRILL_M3_PIN 12
+
+// Servo pulse calibration for RoboClaw RC input
+static const uint16_t DRILL_US_MIN    = 1000; // -100%
+static const uint16_t DRILL_US_CENTER = 1500; // 0%
+static const uint16_t DRILL_US_MAX    = 2000; // +100%
+
+// ========================= GLOBALS =========================
+
+// PCA9685 servos
 Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x40);
 static const uint16_t SERVO_FREQ = 50;
 ServoState servos[3];
 
-// ---- Relays (Pumps and UV) ----
-// NOTE: You requested stirrer on pin 0. On Uno, D0 is Serial RX and WILL conflict with Serial.
-Relay relays[] = {
-  {"pump1",   13, false},
-  {"pump2",   12, false},
-  {"pump3",   11, false},
-  {"stirrer",  0, false},  // WARNING: conflicts with Serial RX on Uno
-  {"uv_led",   9, false},
-};
-static const uint8_t RELAY_COUNT = sizeof(relays) / sizeof(relays[0]);
-
-// ---- Linear Actuator (H-Bridge IN1..IN4) ----
-#define ACT_IN1 4
-#define ACT_IN2 5
-#define ACT_IN3 6   // PWM on Uno
-#define ACT_IN4 7
+// Linear actuator
 ActuatorState actuator = { ActDir::STOP, 150 };
 
-// ---- Menu state ----
+// Menus
 MenuState menuState = MenuState::MAIN;
 int selectedRelay = -1;
 
-// ========================= DRILL / ROBOCLAW CONFIG =========================
-// NOTE: You provided both addresses as 0x81. Typically two RoboClaws should have different addresses.
-// Kept exactly as provided.
-const uint8_t  ROBOCLAW1_ADDR = 0x81;
-const uint8_t  ROBOCLAW2_ADDR = 0x82;
-const uint32_t ROBOCLAW_BAUD  = 9600;
+// Drill PWM “motors”
+Servo drillServo1, drillServo2, drillServo3;
+DrillMotorState drillMotors[3] = {
+  {0, 40, 0},  // default speed 40%
+  {0, 40, 0},
+  {0, 40, 0},
+};
 
-Basicmicro roboclaw1(&Serial1, 10000);
-Basicmicro roboclaw2(&Serial2, 10000);
+// Drill auto sequence state
+bool drillAutoEnabled = false;     // running sequence
+bool drillPaused      = false;
+bool drillControlMode = false;     // manual mode (like your original)
+bool drillStopReq     = false;
 
-volatile bool drillStopRequested = false;
-volatile bool drillControlMode   = false;
-bool drillAutoEnabled            = true;   // auto sequence runs when true
-DrillSeqState drillSeqState      = DRILL_STEP1;
-unsigned long drillStateStartMs  = 0;
+DrillSeqState drillSeqState = DRILL_STEP1;
+unsigned long drillStateStartMs = 0;
 
-// ========================= GENERIC HELPERS =========================
+// ========================= HELPERS =========================
 static uint16_t usToTicks(uint16_t us, uint16_t freq) {
   uint32_t ticks = (uint32_t)us * (uint32_t)freq * 4096UL;
   ticks = (ticks + 500000UL) / 1000000UL;
@@ -157,8 +175,7 @@ static void actuatorApply() {
       digitalWrite(ACT_IN2, HIGH);
       break;
   }
-  analogWrite(ACT_IN3, actuator.speed);
-  digitalWrite(ACT_IN4, (actuator.dir == ActDir::STOP) ? LOW : HIGH);
+  analogWrite(ACT_PWM, actuator.speed);
 }
 
 static const __FlashStringHelper* actDirToStr(ActDir d) {
@@ -170,7 +187,6 @@ static const __FlashStringHelper* actDirToStr(ActDir d) {
   return F("?");
 }
 
-// Non-blocking line reader from Serial (main UI)
 static String readLineNonBlocking() {
   static String buf;
   while (Serial.available() > 0) {
@@ -201,274 +217,82 @@ static bool isInteger(const String& s) {
   return true;
 }
 
-// ========================= DRILL HELPERS (ported from your working sketch) =========================
-static int16_t drillClampDuty(long v) {
-  if (v < -32768) return -32768;
-  if (v >  32767) return  32767;
+static int16_t clampPct(int v) {
+  if (v < -100) return -100;
+  if (v >  100) return  100;
   return (int16_t)v;
 }
 
-static void drillStopAll() {
-  roboclaw1.DutyM1M2(ROBOCLAW1_ADDR, 0, 0);
-  roboclaw2.DutyM1(ROBOCLAW2_ADDR, 0);
+static uint16_t pctToUs(int16_t pct) {
+  pct = clampPct(pct);
+  if (pct == 0) return DRILL_US_CENTER;
+
+  if (pct > 0) {
+    // map 0..100 to center..max
+    return (uint16_t)(DRILL_US_CENTER + (uint32_t)(DRILL_US_MAX - DRILL_US_CENTER) * (uint32_t)pct / 100UL);
+  } else {
+    // map -100..0 to min..center
+    int16_t ap = (int16_t)(-pct);
+    return (uint16_t)(DRILL_US_CENTER - (uint32_t)(DRILL_US_CENTER - DRILL_US_MIN) * (uint32_t)ap / 100UL);
+  }
 }
 
-static void drillSetM1(int16_t d) { roboclaw1.DutyM1(ROBOCLAW1_ADDR, d); }
-static void drillSetM2(int16_t d) { roboclaw1.DutyM2(ROBOCLAW1_ADDR, d); }
-static void drillSetM3(int16_t d) { roboclaw2.DutyM1(ROBOCLAW2_ADDR, d); } // third motor on roboclaw2 M1
+static void drillApplyMotor(uint8_t i) {
+  if (i > 2) return;
+
+  DrillMotorState &m = drillMotors[i];
+  int16_t cmd = 0;
+  if (m.direction > 0) cmd = (int16_t)m.speedPct;
+  else if (m.direction < 0) cmd = (int16_t)(-m.speedPct);
+  else cmd = 0;
+  m.signedPct = cmd;
+
+  uint16_t us = pctToUs(cmd);
+
+  if (i == 0) drillServo1.writeMicroseconds(us);
+  if (i == 1) drillServo2.writeMicroseconds(us);
+  if (i == 2) drillServo3.writeMicroseconds(us);
+}
+
+static void drillSetMotorPct(uint8_t i, int16_t signedPct) {
+  if (i > 2) return;
+  signedPct = clampPct(signedPct);
+
+  DrillMotorState &m = drillMotors[i];
+  if (signedPct > 0) { m.direction = +1; m.speedPct = (uint8_t)signedPct; }
+  else if (signedPct < 0) { m.direction = -1; m.speedPct = (uint8_t)(-signedPct); }
+  else { m.direction = 0; m.speedPct = 0; }
+
+  drillApplyMotor(i);
+}
+
+static void drillStopAll() {
+  drillSetMotorPct(0, 0);
+  drillSetMotorPct(1, 0);
+  drillSetMotorPct(2, 0);
+}
 
 static void drillEnterState(DrillSeqState s) {
   drillSeqState = s;
   drillStateStartMs = millis();
 
   switch (s) {
-    case DRILL_STEP1:      Serial.println(F("DRILL SEQ: STEP1 m1,m2=-13000 for 42.2s")); break;
+    case DRILL_STEP1:      Serial.println(F("DRILL SEQ: STEP1 (M1=+40%, M2=+40%) 42.2s")); break;
     case DRILL_STEP1_STOP: Serial.println(F("DRILL SEQ: STEP1 stop")); break;
-    case DRILL_STEP2:      Serial.println(F("DRILL SEQ: STEP2 m1,m3=-13000 for 21s")); break;
+    case DRILL_STEP2:      Serial.println(F("DRILL SEQ: STEP2 (M1=+40%, M3=-40%) 21s")); break;
     case DRILL_STEP2_STOP: Serial.println(F("DRILL SEQ: STEP2 stop")); break;
-    case DRILL_STEP3:      Serial.println(F("DRILL SEQ: STEP3 m1=-13000 m3=-6500 for 39s")); break;
+    case DRILL_STEP3:      Serial.println(F("DRILL SEQ: STEP3 (M1=-40%, M3=-20%) 39s")); break;
     case DRILL_STEP3_STOP: Serial.println(F("DRILL SEQ: STEP3 stop")); break;
-    case DRILL_STEP4:      Serial.println(F("DRILL SEQ: STEP4 m2=13000 for 17.5s")); break;
+    case DRILL_STEP4:      Serial.println(F("DRILL SEQ: STEP4 (M2=-40%) 17.5s")); break;
     case DRILL_STEP4_STOP: Serial.println(F("DRILL SEQ: STEP4 stop")); break;
-    case DRILL_STEP5:      Serial.println(F("DRILL SEQ: STEP5 m1,m2=13000 for 26.7s")); break;
+    case DRILL_STEP5:      Serial.println(F("DRILL SEQ: STEP5 (M1=-40%, M2=-40%) 26.7s")); break;
     case DRILL_STEP5_STOP: Serial.println(F("DRILL SEQ: STEP5 stop")); break;
     case DRILL_DONE:       Serial.println(F("DRILL SEQ: DONE")); break;
     case DRILL_ABORTED:    Serial.println(F("DRILL SEQ: ABORTED")); break;
   }
 }
 
-static void drillPrintHelp() {
-  Serial.println();
-  Serial.println(F("=== DRILL COMMANDS ==="));
-  Serial.println(F("Mode control:"));
-  Serial.println(F("  start                  - start/restart auto sequence (enables auto)"));
-  Serial.println(F("  pause                  - pause auto sequence (does NOT stop motors)"));
-  Serial.println(F("  resume                 - resume auto sequence"));
-  Serial.println(F("  stop                   - IMMEDIATELY stop ALL drill motors + abort sequence"));
-  Serial.println(F("  control                - enter manual motor control mode"));
-  Serial.println(F("  exit                   - leave manual control mode (auto can run if enabled)"));
-  Serial.println(F("  status                 - show drill state"));
-  Serial.println(F("  help                   - show this list"));
-  Serial.println();
-  Serial.println(F("Manual motor commands (ONLY when in control mode):"));
-  Serial.println(F("  m1 <duty>               - set M1 on RoboClaw1"));
-  Serial.println(F("  m2 <duty>               - set M2 on RoboClaw1"));
-  Serial.println(F("  m3 <duty>               - set M1 on RoboClaw2 (3rd motor)"));
-  Serial.println(F("  both <d1> <d2>          - set M1 and M2 on RoboClaw1"));
-  Serial.println(F("  all <d1> <d2> <d3>      - set M1,M2 on RC1 and M1 on RC2"));
-  Serial.println(F("Duty range: -32768..32767 (negative = reverse)"));
-  Serial.println(F("Back: type 'b' to return to main menu."));
-  Serial.println();
-}
-
-static void drillPrintStatus() {
-  Serial.print(F("DRILL: auto="));
-  Serial.print(drillAutoEnabled ? F("ON") : F("OFF"));
-  Serial.print(F(" controlMode="));
-  Serial.print(drillControlMode ? F("YES") : F("NO"));
-  Serial.print(F(" stopRequested="));
-  Serial.println(drillStopRequested ? F("YES") : F("NO"));
-
-  Serial.print(F("DRILL: seqState="));
-  Serial.println((int)drillSeqState);
-}
-
-static void drillHandleCommandLine(const String &rawLine) {
-  String line = rawLine;
-  line.trim();
-  if (line.length() == 0) return;
-
-  String lower = line;
-  lower.toLowerCase();
-
-  if (lower == "help" || lower == "?") { drillPrintHelp(); return; }
-
-  if (lower == "stop") {
-    drillStopRequested = true;
-    drillAutoEnabled = false;
-    drillStopAll();
-    drillEnterState(DRILL_ABORTED);
-    Serial.println(F("OK: ALL drill motors stopped. Sequence aborted."));
-    return;
-  }
-
-  if (lower == "start") {
-    drillStopRequested = false;
-    drillAutoEnabled = true;
-    drillControlMode = false;
-    drillStopAll();
-    drillEnterState(DRILL_STEP1);
-    Serial.println(F("OK: Drill auto sequence started."));
-    return;
-  }
-
-  if (lower == "pause") {
-    drillAutoEnabled = false;
-    Serial.println(F("OK: Drill auto sequence paused."));
-    return;
-  }
-
-  if (lower == "resume") {
-    if (!drillStopRequested && drillSeqState != DRILL_ABORTED && drillSeqState != DRILL_DONE) {
-      drillAutoEnabled = true;
-      Serial.println(F("OK: Drill auto sequence resumed."));
-    } else {
-      Serial.println(F("NOTE: sequence is done/aborted; use 'start' to restart."));
-    }
-    return;
-  }
-
-  if (lower == "control") {
-    drillControlMode = true;
-    drillAutoEnabled = false; // pause auto while manually driving
-    Serial.println(F("Entered DRILL CONTROL mode. Type motor commands, or 'exit' to leave."));
-    return;
-  }
-
-  if (lower == "exit") {
-    if (drillControlMode) {
-      drillControlMode = false;
-      Serial.println(F("Exited DRILL CONTROL mode. Use 'resume' to continue auto, or 'start' to restart."));
-    } else {
-      Serial.println(F("Not in control mode."));
-    }
-    return;
-  }
-
-  if (lower == "status") { drillPrintStatus(); return; }
-
-  // If not in control mode, ignore motor commands (but still allow stop/start/control/help/status/etc.)
-  if (!drillControlMode) {
-    Serial.println(F("NOTE: type 'control' to manually drive drill motors (or 'start' for auto)."));
-    return;
-  }
-
-  // Tokenize: cmd and args
-  int sp = line.indexOf(' ');
-  if (sp < 0) { Serial.println(F("ERR: missing args. Type 'help'.")); return; }
-  String cmd = line.substring(0, sp);
-  String args = line.substring(sp + 1);
-  cmd.toLowerCase();
-  args.trim();
-
-  if (cmd == "m1") {
-    int16_t d = drillClampDuty(args.toInt());
-    drillSetM1(d);
-    Serial.print(F("OK: M1=")); Serial.println(d);
-    return;
-  }
-  if (cmd == "m2") {
-    int16_t d = drillClampDuty(args.toInt());
-    drillSetM2(d);
-    Serial.print(F("OK: M2=")); Serial.println(d);
-    return;
-  }
-  if (cmd == "m3") {
-    int16_t d = drillClampDuty(args.toInt());
-    drillSetM3(d);
-    Serial.print(F("OK: M3=")); Serial.println(d);
-    return;
-  }
-  if (cmd == "both") {
-    int sp2 = args.indexOf(' ');
-    if (sp2 < 0) { Serial.println(F("ERR: both needs 2 numbers. Example: both 8000 8000")); return; }
-    int16_t d1 = drillClampDuty(args.substring(0, sp2).toInt());
-    int16_t d2 = drillClampDuty(args.substring(sp2 + 1).toInt());
-    roboclaw1.DutyM1M2(ROBOCLAW1_ADDR, d1, d2);
-    Serial.print(F("OK: M1=")); Serial.print(d1); Serial.print(F(" M2=")); Serial.println(d2);
-    return;
-  }
-  if (cmd == "all") {
-    int sp1 = args.indexOf(' ');
-    if (sp1 < 0) { Serial.println(F("ERR: all needs 3 numbers. Example: all 8000 8000 8000")); return; }
-    int sp2 = args.indexOf(' ', sp1 + 1);
-    if (sp2 < 0) { Serial.println(F("ERR: all needs 3 numbers. Example: all 8000 8000 8000")); return; }
-
-    int16_t d1 = drillClampDuty(args.substring(0, sp1).toInt());
-    int16_t d2 = drillClampDuty(args.substring(sp1 + 1, sp2).toInt());
-    int16_t d3 = drillClampDuty(args.substring(sp2 + 1).toInt());
-
-    roboclaw1.DutyM1M2(ROBOCLAW1_ADDR, d1, d2);
-    drillSetM3(d3);
-
-    Serial.print(F("OK: M1=")); Serial.print(d1);
-    Serial.print(F(" M2=")); Serial.print(d2);
-    Serial.print(F(" M3=")); Serial.println(d3);
-    return;
-  }
-
-  Serial.println(F("ERR: unknown command. Type 'help'."));
-}
-
-static void drillUpdateSequence() {
-  if (!drillAutoEnabled) return;
-  if (drillControlMode)  return;
-
-  if (drillStopRequested) {
-    if (drillSeqState != DRILL_ABORTED) {
-      drillEnterState(DRILL_ABORTED);
-      drillStopAll();
-    }
-    return;
-  }
-
-  unsigned long now = millis();
-
-  switch (drillSeqState) {
-    case DRILL_STEP1:
-      // NOTE: kept the *exact timing + commands* from your code (even if comments differ)
-      drillSetM1(13000); drillSetM2(13000);
-      if (now - drillStateStartMs >= 42200UL) { drillSetM1(0); drillSetM2(0); drillEnterState(DRILL_STEP1_STOP); }
-      break;
-
-    case DRILL_STEP1_STOP:
-      drillEnterState(DRILL_STEP2);
-      break;
-
-    case DRILL_STEP2:
-      drillSetM1(13000); drillSetM3(-13000);
-      if (now - drillStateStartMs >= 21000UL) { drillSetM1(0); drillSetM3(0); drillEnterState(DRILL_STEP2_STOP); }
-      break;
-
-    case DRILL_STEP2_STOP:
-      drillEnterState(DRILL_STEP3);
-      break;
-
-    case DRILL_STEP3:
-      drillSetM1(-13000); drillSetM3(-6500);
-      if (now - drillStateStartMs >= 39000UL) { drillSetM1(0); drillSetM3(0); drillEnterState(DRILL_STEP3_STOP); }
-      break;
-
-    case DRILL_STEP3_STOP:
-      drillEnterState(DRILL_STEP4);
-      break;
-
-    case DRILL_STEP4:
-      drillSetM2(-13000);
-      if (now - drillStateStartMs >= 17500UL) { drillSetM2(0); drillEnterState(DRILL_STEP4_STOP); }
-      break;
-
-    case DRILL_STEP4_STOP:
-      drillEnterState(DRILL_STEP5);
-      break;
-
-    case DRILL_STEP5:
-      drillSetM1(-13000); drillSetM2(-13000);
-      if (now - drillStateStartMs >= 26700UL) { drillSetM1(0); drillSetM2(0); drillEnterState(DRILL_STEP5_STOP); }
-      break;
-
-    case DRILL_STEP5_STOP:
-      drillEnterState(DRILL_DONE);
-      break;
-
-    case DRILL_DONE:
-    case DRILL_ABORTED:
-      // nothing
-      break;
-  }
-}
-
-// ========================= MENU PRINTING =========================
+// ========================= MENU PRINTS =========================
 static void printMainMenu() {
   Serial.println();
   Serial.println(F("=== MAIN MENU ==="));
@@ -476,8 +300,8 @@ static void printMainMenu() {
   Serial.println(F("2) Pumps and UV"));
   Serial.println(F("3) Linear Actuator"));
   Serial.println(F("4) Drill"));
-  Serial.println(F("h) Help (show this menu)"));
-  Serial.println(F("Type option and press Enter:"));
+  Serial.println(F("h) Help"));
+  Serial.println(F("Type option:"));
 }
 
 static void printServoSelectMenu() {
@@ -486,85 +310,90 @@ static void printServoSelectMenu() {
   Serial.println(F("1) Servo 1"));
   Serial.println(F("2) Servo 2"));
   Serial.println(F("3) Servo 3"));
-  Serial.println(F("b) Back to Main"));
-  Serial.println(F("Select servo:"));
+  Serial.println(F("b) Back"));
 }
 
 static void printServoControlMenu(uint8_t idx) {
   Serial.println();
-  Serial.print(F("=== SERVO "));
-  Serial.print(idx + 1);
-  Serial.println(F(" CONTROL ==="));
-  Serial.println(F("Commands:"));
-  Serial.println(F("  f              -> move forward (toward 180 deg)"));
-  Serial.println(F("  r              -> move reverse/backward (toward 0 deg)"));
-  Serial.println(F("  stop           -> stop movement"));
-  Serial.println(F("  goto <deg>     -> go to specific angle (0-180)"));
-  Serial.println(F("  speed <deg/s>  -> set speed (e.g., speed 45)"));
-  Serial.println(F("  center         -> send center pulse (centerUs)"));
-  Serial.println(F("  calib min <us> -> set min pulse width (e.g., 500)"));
-  Serial.println(F("  calib max <us> -> set max pulse width (e.g., 2500)"));
-  Serial.println(F("  calib center <us> -> set center pulse (e.g., 1500)"));
-  Serial.println(F("  status         -> print current settings"));
-  Serial.println(F("  b              -> back"));
-  Serial.println(F("Enter command:"));
+  Serial.print(F("=== SERVO ")); Serial.print(idx + 1); Serial.println(F(" ==="));
+  Serial.println(F("f | r | stop | goto <deg> | speed <deg/s> | status | b"));
 }
 
 static void printPumpsUvMenu() {
   Serial.println();
   Serial.println(F("=== PUMPS AND UV ==="));
-  Serial.println(F("Select item by number or name:"));
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
-    Serial.print(i + 1);
-    Serial.print(F(") "));
+    Serial.print(i + 1); Serial.print(F(") "));
     Serial.print(relays[i].label);
-    Serial.print(F("  [pin D"));
-    Serial.print(relays[i].pin);
-    Serial.print(F("] state="));
+    Serial.print(F(" state="));
     Serial.println(relays[i].state ? F("ON") : F("OFF"));
   }
-  Serial.println(F("b) Back to Main"));
-  Serial.println(F("Type name (e.g., pump1) or number (e.g., 1):"));
+  Serial.println(F("Pick by name/number, or b"));
 }
 
 static void printPumpsUvControlMenu() {
   Serial.println();
-  Serial.print(F("=== CONTROL: "));
-  Serial.print(relays[selectedRelay].label);
-  Serial.println(F(" ==="));
-  Serial.println(F("Type: on | off | toggle | status | b"));
+  Serial.print(F("=== CONTROL: ")); Serial.print(relays[selectedRelay].label); Serial.println(F(" ==="));
+  Serial.println(F("on | off | toggle | status | b"));
 }
 
 static void printActuatorMenu() {
   Serial.println();
   Serial.println(F("=== LINEAR ACTUATOR ==="));
-  Serial.println(F("Commands:"));
-  Serial.println(F("  f            -> extend (forward)"));
-  Serial.println(F("  r            -> retract (reverse)"));
-  Serial.println(F("  stop         -> stop"));
-  Serial.println(F("  speed <0-255>-> set PWM speed"));
-  Serial.println(F("  status       -> show state"));
-  Serial.println(F("  pins         -> show pin mapping"));
-  Serial.println(F("  b            -> back"));
-  Serial.println(F("Enter command:"));
+  Serial.println(F("f | r | stop | speed <0-255> | status | b"));
 }
 
 static void printActuatorStatus() {
-  Serial.print(F("Actuator dir="));
-  Serial.print(actDirToStr(actuator.dir));
-  Serial.print(F(" speed="));
-  Serial.println(actuator.speed);
+  Serial.print(F("dir=")); Serial.print(actDirToStr(actuator.dir));
+  Serial.print(F(" speed=")); Serial.println(actuator.speed);
 }
 
 static void printDrillMenu() {
   Serial.println();
   Serial.println(F("=== DRILL ==="));
-  Serial.println(F("Type 'help' to see commands."));
-  Serial.println(F("Common: start | pause | resume | stop | control | exit | status | b"));
-  Serial.println(F("Enter command:"));
+  Serial.println(F("1) Motor 1"));
+  Serial.println(F("2) Motor 2"));
+  Serial.println(F("3) Motor 3"));
+  Serial.println(F("4) Auto Sequence"));
+  Serial.println(F("b) Back"));
+  Serial.println(F("Tip: type 'status' to see motor states."));
 }
 
-// ========================= SERVO UPDATE =========================
+static void printDrillMotorMenu(uint8_t i) {
+  Serial.println();
+  Serial.print(F("=== DRILL MOTOR ")); Serial.print(i + 1); Serial.println(F(" ==="));
+  Serial.println(F("f | r | stop | speed <0-100> | set <-100..100> | status | b"));
+}
+
+static void printDrillAutoMenu() {
+  Serial.println();
+  Serial.println(F("=== DRILL AUTO SEQUENCE ==="));
+  Serial.println(F("start | pause | resume | stop | status | b"));
+}
+
+static void drillPrintMotorStatus(uint8_t i) {
+  DrillMotorState &m = drillMotors[i];
+  Serial.print(F("M")); Serial.print(i + 1);
+  Serial.print(F(" dir="));
+  Serial.print(m.direction > 0 ? F("FWD") : (m.direction < 0 ? F("REV") : F("STOP")));
+  Serial.print(F(" speed=")); Serial.print(m.speedPct);
+  Serial.print(F("% cmd=")); Serial.print(m.signedPct);
+  Serial.println(F("%"));
+}
+
+static void drillPrintAllStatus() {
+  drillPrintMotorStatus(0);
+  drillPrintMotorStatus(1);
+  drillPrintMotorStatus(2);
+
+  Serial.print(F("AUTO=")); Serial.print(drillAutoEnabled ? F("ON") : F("OFF"));
+  Serial.print(F(" paused=")); Serial.print(drillPaused ? F("YES") : F("NO"));
+  Serial.print(F(" controlMode=")); Serial.print(drillControlMode ? F("YES") : F("NO"));
+  Serial.print(F(" stopReq=")); Serial.println(drillStopReq ? F("YES") : F("NO"));
+  Serial.print(F(" seqState=")); Serial.println((int)drillSeqState);
+}
+
+// ========================= SERVO BACKGROUND UPDATE =========================
 static void updateServos() {
   unsigned long now = millis();
   for (uint8_t i = 0; i < 3; i++) {
@@ -591,115 +420,106 @@ static void updateServos() {
   }
 }
 
-// ========================= COMMAND HANDLERS =========================
-static void handleMain(const String& cmd) {
-  if (cmd == "1" || cmd.equalsIgnoreCase("servos")) {
-    menuState = MenuState::SERVO_MENU;
-    printServoSelectMenu();
-  } else if (cmd == "2" || cmd.equalsIgnoreCase("pumps") || cmd.equalsIgnoreCase("uv") || cmd.equalsIgnoreCase("pumps and uv")) {
-    menuState = MenuState::PUMPS_UV_MENU;
-    printPumpsUvMenu();
-  } else if (cmd == "3" || cmd.equalsIgnoreCase("actuator") || cmd.equalsIgnoreCase("linear")) {
-    menuState = MenuState::ACTUATOR_MENU;
-    printActuatorMenu();
-    printActuatorStatus();
-  } else if (cmd == "4" || cmd.equalsIgnoreCase("drill")) {
-    menuState = MenuState::DRILL_MENU;
-    printDrillMenu();
-    drillPrintStatus();
-  } else if (cmd == "h" || cmd.equalsIgnoreCase("help")) {
-    printMainMenu();
-  } else if (cmd.length() > 0) {
-    Serial.println(F("Unknown option. Type 'h' for help."));
+// ========================= DRILL AUTO UPDATE =========================
+static void drillUpdateSequence() {
+  if (!drillAutoEnabled) return;
+  if (drillPaused) return;
+  if (drillControlMode) return;
+
+  if (drillStopReq) {
+    if (drillSeqState != DRILL_ABORTED) {
+      drillEnterState(DRILL_ABORTED);
+      drillStopAll();
+    }
+    return;
+  }
+
+  unsigned long now = millis();
+
+  // These match your last working UART logic, converted to %:
+  // 13000 -> ~40%, 6500 -> ~20%
+  switch (drillSeqState) {
+    case DRILL_STEP1:
+      drillSetMotorPct(0, +40);
+      drillSetMotorPct(1, +40);
+      if (now - drillStateStartMs >= 42200UL) { drillStopAll(); drillEnterState(DRILL_STEP1_STOP); }
+      break;
+
+    case DRILL_STEP1_STOP:
+      drillEnterState(DRILL_STEP2);
+      break;
+
+    case DRILL_STEP2:
+      drillSetMotorPct(0, +40);
+      drillSetMotorPct(2, -40);
+      if (now - drillStateStartMs >= 21000UL) { drillStopAll(); drillEnterState(DRILL_STEP2_STOP); }
+      break;
+
+    case DRILL_STEP2_STOP:
+      drillEnterState(DRILL_STEP3);
+      break;
+
+    case DRILL_STEP3:
+      drillSetMotorPct(0, -40);
+      drillSetMotorPct(2, -20);
+      if (now - drillStateStartMs >= 39000UL) { drillStopAll(); drillEnterState(DRILL_STEP3_STOP); }
+      break;
+
+    case DRILL_STEP3_STOP:
+      drillEnterState(DRILL_STEP4);
+      break;
+
+    case DRILL_STEP4:
+      drillSetMotorPct(1, -40);
+      if (now - drillStateStartMs >= 17500UL) { drillStopAll(); drillEnterState(DRILL_STEP4_STOP); }
+      break;
+
+    case DRILL_STEP4_STOP:
+      drillEnterState(DRILL_STEP5);
+      break;
+
+    case DRILL_STEP5:
+      drillSetMotorPct(0, -40);
+      drillSetMotorPct(1, -40);
+      if (now - drillStateStartMs >= 26700UL) { drillStopAll(); drillEnterState(DRILL_STEP5_STOP); }
+      break;
+
+    case DRILL_STEP5_STOP:
+      drillEnterState(DRILL_DONE);
+      drillAutoEnabled = false; // stop running after done
+      break;
+
+    case DRILL_DONE:
+    case DRILL_ABORTED:
+      drillAutoEnabled = false;
+      break;
   }
 }
 
-static void handleServoSelect(const String& cmd) {
-  if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
-  if (cmd == "1") { menuState = MenuState::SERVO_1; printServoControlMenu(0); return; }
-  if (cmd == "2") { menuState = MenuState::SERVO_2; printServoControlMenu(1); return; }
-  if (cmd == "3") { menuState = MenuState::SERVO_3; printServoControlMenu(2); return; }
-  if (cmd.length() > 0) Serial.println(F("Pick 1, 2, 3 or b."));
-}
-
-static void printServoStatus(uint8_t idx) {
-  ServoState &s = servos[idx];
-  Serial.print(F("Servo ")); Serial.print(idx + 1);
-  Serial.print(F(" ch=")); Serial.print(s.channel);
-  Serial.print(F(" current=")); Serial.print(s.currentDeg, 1);
-  Serial.print(F(" target=")); Serial.print(s.targetDeg, 1);
-  Serial.print(F(" moving=")); Serial.print(s.moving ? F("yes") : F("no"));
-  Serial.print(F(" speed=")); Serial.print(s.speedDegPerSec, 1); Serial.println(F(" deg/s"));
-  Serial.print(F(" calib minUs=")); Serial.print(s.minUs);
-  Serial.print(F(" maxUs=")); Serial.print(s.maxUs);
-  Serial.print(F(" centerUs=")); Serial.println(s.centerUs);
-}
-
+// ========================= COMMAND HANDLERS =========================
 static void servoGoTo(uint8_t idx, float deg) {
-  ServoState &s = servos[idx];
   if (deg < 0) deg = 0;
   if (deg > 180) deg = 180;
-  s.targetDeg = deg;
-  s.moving = true;
-  s.lastUpdateMs = millis();
-  Serial.print(F("Moving servo ")); Serial.print(idx + 1);
-  Serial.print(F(" to ")); Serial.print(deg, 1); Serial.println(F(" deg"));
+  servos[idx].targetDeg = deg;
+  servos[idx].moving = true;
+  servos[idx].lastUpdateMs = millis();
 }
 
 static void handleServoControl(uint8_t idx, const String& cmd) {
   if (cmd == "b") { menuState = MenuState::SERVO_MENU; printServoSelectMenu(); return; }
-  if (cmd.equalsIgnoreCase("f")) { servoGoTo(idx, 180.0f); return; }
-  if (cmd.equalsIgnoreCase("r")) { servoGoTo(idx, 0.0f); return; }
+  if (cmd.equalsIgnoreCase("f")) { servoGoTo(idx, 180); return; }
+  if (cmd.equalsIgnoreCase("r")) { servoGoTo(idx, 0); return; }
+  if (cmd.equalsIgnoreCase("stop")) { servos[idx].moving = false; return; }
+  if (cmd.equalsIgnoreCase("status")) { printServoControlMenu(idx); return; }
 
-  if (cmd.equalsIgnoreCase("stop")) { servos[idx].moving = false; Serial.println(F("Stopped.")); return; }
-  if (cmd.equalsIgnoreCase("status")) { printServoStatus(idx); return; }
-
-  if (cmd.equalsIgnoreCase("center")) {
-    servos[idx].moving = false;
-    servos[idx].currentDeg = 90.0f;
-    servos[idx].targetDeg = 90.0f;
-    uint16_t ticks = usToTicks(servos[idx].centerUs, SERVO_FREQ);
-    pca.setPWM(servos[idx].channel, 0, ticks);
-    Serial.println(F("Sent center pulse."));
-    return;
-  }
-
-  if (cmd.startsWith("goto ")) {
-    String arg = cmd.substring(5); arg.trim();
-    servoGoTo(idx, arg.toFloat());
-    return;
-  }
-
+  if (cmd.startsWith("goto ")) { servoGoTo(idx, cmd.substring(5).toFloat()); return; }
   if (cmd.startsWith("speed ")) {
-    String arg = cmd.substring(6); arg.trim();
-    float spd = arg.toFloat();
+    float spd = cmd.substring(6).toFloat();
     if (spd <= 0) spd = 1;
     servos[idx].speedDegPerSec = spd;
-    Serial.print(F("Speed set to ")); Serial.print(spd, 1); Serial.println(F(" deg/s"));
     return;
   }
-
-  if (cmd.startsWith("calib ")) {
-    String rest = cmd.substring(6); rest.trim();
-    int sp = rest.indexOf(' ');
-    if (sp < 0) { Serial.println(F("Usage: calib min <us> | calib max <us> | calib center <us>")); return; }
-
-    String which = rest.substring(0, sp);
-    String valS  = rest.substring(sp + 1);
-    which.trim(); valS.trim();
-
-    int us = valS.toInt();
-    if (us < 100) us = 100;
-    if (us > 3000) us = 3000;
-
-    if (which.equalsIgnoreCase("min")) { servos[idx].minUs = (uint16_t)us; Serial.println(F("Updated minUs.")); }
-    else if (which.equalsIgnoreCase("max")) { servos[idx].maxUs = (uint16_t)us; Serial.println(F("Updated maxUs.")); }
-    else if (which.equalsIgnoreCase("center")) { servos[idx].centerUs = (uint16_t)us; Serial.println(F("Updated centerUs.")); }
-    else { Serial.println(F("Unknown calib field. Use min/max/center.")); }
-    return;
-  }
-
-  if (cmd.length() > 0) Serial.println(F("Unknown servo command. Type 'status' or 'b'."));
+  Serial.println(F("Unknown servo cmd"));
 }
 
 static int findRelayByName(const String& name) {
@@ -720,120 +540,189 @@ static void handlePumpsUvMenu(const String& cmd) {
     idx = findRelayByName(cmd);
   }
 
-  if (idx >= 0) {
-    selectedRelay = idx;
-    menuState = MenuState::PUMPS_UV_CONTROL;
-    printPumpsUvControlMenu();
-  } else if (cmd.length() > 0) {
-    Serial.println(F("Unknown selection. Type a name or number."));
-  }
+  if (idx < 0) { Serial.println(F("Unknown selection")); return; }
+
+  selectedRelay = idx;
+  menuState = MenuState::PUMPS_UV_CONTROL;
+  printPumpsUvControlMenu();
 }
 
 static void handlePumpsUvControl(const String& cmd) {
-  if (selectedRelay < 0 || selectedRelay >= (int)RELAY_COUNT) {
-    menuState = MenuState::PUMPS_UV_MENU;
-    printPumpsUvMenu();
-    return;
-  }
-
   if (cmd == "b") { menuState = MenuState::PUMPS_UV_MENU; printPumpsUvMenu(); return; }
 
-  if (cmd.equalsIgnoreCase("on"))      { relays[selectedRelay].state = true;  applyRelay(selectedRelay); Serial.println(F("ON.")); return; }
-  if (cmd.equalsIgnoreCase("off"))     { relays[selectedRelay].state = false; applyRelay(selectedRelay); Serial.println(F("OFF.")); return; }
-  if (cmd.equalsIgnoreCase("toggle"))  { relays[selectedRelay].state = !relays[selectedRelay].state; applyRelay(selectedRelay); Serial.println(F("Toggled.")); return; }
+  if (cmd.equalsIgnoreCase("on"))  { relays[selectedRelay].state = true;  applyRelay(selectedRelay); return; }
+  if (cmd.equalsIgnoreCase("off")) { relays[selectedRelay].state = false; applyRelay(selectedRelay); return; }
+  if (cmd.equalsIgnoreCase("toggle")) { relays[selectedRelay].state = !relays[selectedRelay].state; applyRelay(selectedRelay); return; }
 
   if (cmd.equalsIgnoreCase("status")) {
-    Serial.print(F("State: "));
     Serial.println(relays[selectedRelay].state ? F("ON") : F("OFF"));
     return;
   }
 
-  if (cmd.length() > 0) Serial.println(F("Type: on | off | toggle | status | b"));
+  Serial.println(F("Use on/off/toggle/status/b"));
 }
 
 static void handleActuatorMenu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
 
-  if (cmd.equalsIgnoreCase("f")) {
-    actuator.dir = ActDir::FWD;
-    actuatorApply();
-    Serial.println(F("Actuator forward (extend)."));
-    printActuatorStatus();
-    return;
-  }
+  if (cmd.equalsIgnoreCase("f")) { actuator.dir = ActDir::FWD; actuatorApply(); printActuatorStatus(); return; }
+  if (cmd.equalsIgnoreCase("r")) { actuator.dir = ActDir::REV; actuatorApply(); printActuatorStatus(); return; }
+  if (cmd.equalsIgnoreCase("stop")) { actuator.dir = ActDir::STOP; actuatorApply(); printActuatorStatus(); return; }
 
-  if (cmd.equalsIgnoreCase("r")) {
-    actuator.dir = ActDir::REV;
+  if (cmd.startsWith("speed ")) {
+    int sp = cmd.substring(6).toInt();
+    if (sp < 0) sp = 0;
+    if (sp > 255) sp = 255;
+    actuator.speed = (uint8_t)sp;
     actuatorApply();
-    Serial.println(F("Actuator reverse (retract)."));
-    printActuatorStatus();
-    return;
-  }
-
-  if (cmd.equalsIgnoreCase("stop")) {
-    actuator.dir = ActDir::STOP;
-    actuatorApply();
-    Serial.println(F("Actuator stopped."));
     printActuatorStatus();
     return;
   }
 
   if (cmd.equalsIgnoreCase("status")) { printActuatorStatus(); return; }
-
-  if (cmd.equalsIgnoreCase("pins")) {
-    Serial.print(F("IN1=D")); Serial.println(ACT_IN1);
-    Serial.print(F("IN2=D")); Serial.println(ACT_IN2);
-    Serial.print(F("IN3(PWM)=D")); Serial.println(ACT_IN3);
-    Serial.print(F("IN4=D")); Serial.println(ACT_IN4);
-    return;
-  }
-
-  if (cmd.startsWith("speed ")) {
-    String arg = cmd.substring(6); arg.trim();
-    int sp = arg.toInt();
-    if (sp < 0) sp = 0;
-    if (sp > 255) sp = 255;
-    actuator.speed = (uint8_t)sp;
-    actuatorApply();
-    Serial.print(F("Actuator speed set to ")); Serial.println(actuator.speed);
-    return;
-  }
-
-  if (cmd.length() > 0) {
-    Serial.println(F("Unknown command. Use: f | r | stop | speed <0-255> | status | pins | b"));
-  }
+  Serial.println(F("Unknown actuator cmd"));
 }
 
+// ---- Drill menus ----
 static void handleDrillMenu(const String& cmd) {
-  if (cmd == "b") {
-    menuState = MenuState::MAIN;
+  if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
+  if (cmd == "1") { menuState = MenuState::DRILL_M1; printDrillMotorMenu(0); return; }
+  if (cmd == "2") { menuState = MenuState::DRILL_M2; printDrillMotorMenu(1); return; }
+  if (cmd == "3") { menuState = MenuState::DRILL_M3; printDrillMotorMenu(2); return; }
+  if (cmd == "4") { menuState = MenuState::DRILL_AUTO; printDrillAutoMenu(); return; }
+  if (cmd.equalsIgnoreCase("status")) { drillPrintAllStatus(); return; }
+  Serial.println(F("Pick 1/2/3/4, status, or b"));
+}
+
+static void handleDrillMotor(uint8_t i, const String& cmd) {
+  if (cmd == "b") { menuState = MenuState::DRILL_MENU; printDrillMenu(); return; }
+  if (cmd.equalsIgnoreCase("status")) { drillPrintMotorStatus(i); return; }
+
+  // Manual control cancels auto sequence movement (but doesn't erase state)
+  drillControlMode = true;
+  drillAutoEnabled = false;
+  drillPaused = false;
+
+  if (cmd.equalsIgnoreCase("f")) { drillMotors[i].direction = +1; drillApplyMotor(i); return; }
+  if (cmd.equalsIgnoreCase("r")) { drillMotors[i].direction = -1; drillApplyMotor(i); return; }
+  if (cmd.equalsIgnoreCase("stop")) { drillMotors[i].direction = 0; drillApplyMotor(i); return; }
+
+  if (cmd.startsWith("speed ")) {
+    int v = cmd.substring(6).toInt();
+    if (v < 0) v = 0;
+    if (v > 100) v = 100;
+    drillMotors[i].speedPct = (uint8_t)v;
+    // re-apply at new magnitude
+    drillApplyMotor(i);
+    return;
+  }
+
+  if (cmd.startsWith("set ")) {
+    int v = cmd.substring(4).toInt();
+    drillSetMotorPct(i, (int16_t)v);
+    return;
+  }
+
+  Serial.println(F("Use: f | r | stop | speed <0-100> | set <-100..100> | status | b"));
+}
+
+static void handleDrillAuto(const String& cmd) {
+  if (cmd == "b") { menuState = MenuState::DRILL_MENU; printDrillMenu(); return; }
+
+  if (cmd.equalsIgnoreCase("status")) { drillPrintAllStatus(); return; }
+
+  if (cmd.equalsIgnoreCase("start")) {
+    drillStopReq = false;
+    drillPaused = false;
+    drillControlMode = false;
+    drillAutoEnabled = true;
+    drillStopAll();
+    drillEnterState(DRILL_STEP1);
+    Serial.println(F("OK: Drill auto sequence started."));
+    return;
+  }
+
+  if (cmd.equalsIgnoreCase("pause")) {
+    drillPaused = true;
+    Serial.println(F("OK: paused (motors keep current command)."));
+    return;
+  }
+
+  if (cmd.equalsIgnoreCase("resume")) {
+    if (drillSeqState == DRILL_ABORTED || drillSeqState == DRILL_DONE) {
+      Serial.println(F("NOTE: done/aborted. Use 'start' to restart."));
+      return;
+    }
+    drillPaused = false;
+    drillAutoEnabled = true;
+    drillControlMode = false;
+    Serial.println(F("OK: resumed."));
+    return;
+  }
+
+  if (cmd.equalsIgnoreCase("stop")) {
+    drillStopReq = true;
+    drillAutoEnabled = false;
+    drillPaused = false;
+    drillEnterState(DRILL_ABORTED);
+    drillStopAll();
+    Serial.println(F("OK: stopped + aborted."));
+    return;
+  }
+
+  Serial.println(F("Use: start | pause | resume | stop | status | b"));
+}
+
+// ========================= MAIN HANDLER =========================
+static void handleMain(const String& cmd) {
+  if (cmd == "1" || cmd.equalsIgnoreCase("servos")) {
+    menuState = MenuState::SERVO_MENU;
+    printServoSelectMenu();
+    return;
+  }
+  if (cmd == "2" || cmd.equalsIgnoreCase("pumps") || cmd.equalsIgnoreCase("uv")) {
+    menuState = MenuState::PUMPS_UV_MENU;
+    printPumpsUvMenu();
+    return;
+  }
+  if (cmd == "3" || cmd.equalsIgnoreCase("actuator") || cmd.equalsIgnoreCase("linear")) {
+    menuState = MenuState::ACTUATOR_MENU;
+    printActuatorMenu();
+    printActuatorStatus();
+    return;
+  }
+  if (cmd == "4" || cmd.equalsIgnoreCase("drill")) {
+    menuState = MenuState::DRILL_MENU;
+    printDrillMenu();
+    return;
+  }
+  if (cmd == "h" || cmd.equalsIgnoreCase("help")) {
     printMainMenu();
     return;
   }
-  // Reuse your proven command set inside this submenu
-  drillHandleCommandLine(cmd);
+  Serial.println(F("Unknown option"));
+}
+
+static void handleServoSelect(const String& cmd) {
+  if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
+  if (cmd == "1") { menuState = MenuState::SERVO_1; printServoControlMenu(0); return; }
+  if (cmd == "2") { menuState = MenuState::SERVO_2; printServoControlMenu(1); return; }
+  if (cmd == "3") { menuState = MenuState::SERVO_3; printServoControlMenu(2); return; }
+  Serial.println(F("Pick 1/2/3 or b"));
 }
 
 // ========================= SETUP / LOOP =========================
 void setup() {
   Serial.begin(115200);
-  while (!Serial) { /* ok on boards with native USB */ }
-
-#if !defined(HAVE_HWSERIAL1)
-  // Some cores don't define HAVE_HWSERIAL1; the real compile failure would be "Serial1 not declared".
-  // This message is here to make the requirement obvious in Serial Monitor if you happen to run anyway.
-  Serial.println(F("NOTE: Drill submenu requires Serial1/Serial2 (e.g., Mega/Due). Uno R3 will not compile with Drill enabled."));
-#endif
-
   Wire.begin();
 
   // PCA9685
   pca.begin();
   pca.setPWMFreq(SERVO_FREQ);
 
-  // Servos default
+  // PCA servos init
   for (uint8_t i = 0; i < 3; i++) {
-    servos[i].channel = i;
+    servos[i].channel = i; // channels 0,1,2
     servos[i].minUs = 500;
     servos[i].maxUs = 2500;
     servos[i].centerUs = 1500;
@@ -845,32 +734,27 @@ void setup() {
     writeServoDeg(i, 90.0f);
   }
 
-  // Relays
+  // Relays init
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     pinMode(relays[i].pin, OUTPUT);
     relays[i].state = false;
     applyRelay(i);
   }
 
-  // Actuator pins
+  // Actuator init
   pinMode(ACT_IN1, OUTPUT);
   pinMode(ACT_IN2, OUTPUT);
-  pinMode(ACT_IN3, OUTPUT);
-  pinMode(ACT_IN4, OUTPUT);
+  pinMode(ACT_PWM, OUTPUT);
   actuatorApply();
 
-  // RoboClaw setup (from your working sketch)
-  Serial1.begin(ROBOCLAW_BAUD);
-  roboclaw1.begin(ROBOCLAW_BAUD);
-
-  Serial2.begin(ROBOCLAW_BAUD);
-  roboclaw2.begin(ROBOCLAW_BAUD);
-
-  delay(200);
+  // Drill PWM init (attach + neutral)
+  drillServo1.attach(DRILL_M1_PIN);
+  drillServo2.attach(DRILL_M2_PIN);
+  drillServo3.attach(DRILL_M3_PIN);
   drillStopAll();
-  drillEnterState(DRILL_STEP1);
 
-  Serial.println(F("\nSystem ready."));
+  Serial.println(F("\nSystem ready (UNO + PWM RoboClaw mode)."));
+  Serial.println(F("Drill PWM pins: M1=D4, M2=D11, M3=D12 (1000us=-100%, 1500us=0%, 2000us=+100%)."));
   printMainMenu();
 }
 
@@ -879,7 +763,7 @@ void loop() {
   updateServos();
   drillUpdateSequence();
 
-  // Menu input handling
+  // Menu input
   String cmd = readLineNonBlocking();
   if (cmd.length() == 0) return;
 
@@ -891,14 +775,22 @@ void loop() {
   }
 
   switch (menuState) {
-    case MenuState::MAIN:              handleMain(cmd); break;
-    case MenuState::SERVO_MENU:        handleServoSelect(cmd); break;
-    case MenuState::SERVO_1:           handleServoControl(0, cmd); break;
-    case MenuState::SERVO_2:           handleServoControl(1, cmd); break;
-    case MenuState::SERVO_3:           handleServoControl(2, cmd); break;
-    case MenuState::PUMPS_UV_MENU:     handlePumpsUvMenu(cmd); break;
-    case MenuState::PUMPS_UV_CONTROL:  handlePumpsUvControl(cmd); break;
-    case MenuState::ACTUATOR_MENU:     handleActuatorMenu(cmd); break;
-    case MenuState::DRILL_MENU:        handleDrillMenu(cmd); break;
+    case MenuState::MAIN:             handleMain(cmd); break;
+
+    case MenuState::SERVO_MENU:       handleServoSelect(cmd); break;
+    case MenuState::SERVO_1:          handleServoControl(0, cmd); break;
+    case MenuState::SERVO_2:          handleServoControl(1, cmd); break;
+    case MenuState::SERVO_3:          handleServoControl(2, cmd); break;
+
+    case MenuState::PUMPS_UV_MENU:    handlePumpsUvMenu(cmd); break;
+    case MenuState::PUMPS_UV_CONTROL: handlePumpsUvControl(cmd); break;
+
+    case MenuState::ACTUATOR_MENU:    handleActuatorMenu(cmd); break;
+
+    case MenuState::DRILL_MENU:       handleDrillMenu(cmd); break;
+    case MenuState::DRILL_M1:         handleDrillMotor(0, cmd); break;
+    case MenuState::DRILL_M2:         handleDrillMotor(1, cmd); break;
+    case MenuState::DRILL_M3:         handleDrillMotor(2, cmd); break;
+    case MenuState::DRILL_AUTO:       handleDrillAuto(cmd); break;
   }
 }
