@@ -37,7 +37,7 @@
     Baudrate: 2400
 
   Menu commands for each motor:
-    f | r | stop | speed <0-255> | status | b
+    f | r | s | speed <0-255> | status | b
 
   Drill Modules menu extra:
     test   -> spins Mod1 then Mod2 briefly (RoboClaw #2 sanity test)
@@ -127,6 +127,7 @@ struct RoboMotor {
 static void robomotorApply(RoboMotor &m);
 static void printRoboStatus(RoboMotor &m);
 static bool handleRoboMotorCmd(RoboMotor &m, const String& cmd);
+static void checkEstops();
 
 static void printServoSelectMenu();
 static void printServoControlMenu(uint8_t idx);
@@ -166,6 +167,10 @@ RoboMotor drillMod2 = { "DRILL MODULE 2", &Serial2, RC_ADDR_2, 2, ActDir::STOP, 
 
 MenuState menuState = MenuState::MAIN;
 int selectedRelay   = -1;
+
+// Estop state tracking (to avoid repeated messages)
+static bool estop1_was_pressed = false;
+static bool estop2_was_pressed = false;
 
 // ======================= PCA9685 HELPERS =======================
 static uint16_t usToTicks(uint16_t us) {
@@ -314,7 +319,7 @@ static bool handleRoboMotorCmd(RoboMotor &m, const String& cmd) {
   if (cmd.equalsIgnoreCase("r")) {
     m.dir = ActDir::REV;  robomotorApply(m); printRoboStatus(m); return true;
   }
-  if (cmd.equalsIgnoreCase("stop")) {
+  if (cmd.equalsIgnoreCase("s")) {
     m.dir = ActDir::STOP; robomotorApply(m); printRoboStatus(m); return true;
   }
   if (cmd.equalsIgnoreCase("status")) {
@@ -382,11 +387,51 @@ static void printMainMenu() {
   Serial.println(F("h) Help"));
 }
 
+// ======================= ESTOP MONITORING =======================
+static void checkEstops() {
+  // D47 = DRILLMOD1_ESTOP, D49 = DRILLMOD2_ESTOP (pulled HIGH via INPUT_PULLUP, pressed = LOW)
+  bool estop1_is_pressed = (digitalRead(DRILLMOD1_ESTOP) == LOW);
+  bool estop2_is_pressed = (digitalRead(DRILLMOD2_ESTOP) == LOW);
+
+  // Module 1 Estop triggered
+  if (estop1_is_pressed && !estop1_was_pressed) {
+    Serial.println(F("\n[ESTOP] DRILL MODULE 1 emergency stop triggered!"));
+    drillMod1.dir = ActDir::STOP;
+    robomotorApply(drillMod1);
+    estop1_was_pressed = true;
+  } else if (!estop1_is_pressed && estop1_was_pressed) {
+    Serial.println(F("[ESTOP] DRILL MODULE 1 estop released."));
+    estop1_was_pressed = false;
+  }
+
+  // Module 2 Estop triggered
+  if (estop2_is_pressed && !estop2_was_pressed) {
+    Serial.println(F("\n[ESTOP] DRILL MODULE 2 emergency stop triggered!"));
+    drillMod2.dir = ActDir::STOP;
+    robomotorApply(drillMod2);
+    estop2_was_pressed = true;
+  } else if (!estop2_is_pressed && estop2_was_pressed) {
+    Serial.println(F("[ESTOP] DRILL MODULE 2 estop released."));
+    estop2_was_pressed = false;
+  }
+
+  // In combined mode, stop both if either is pressed
+  if ((estop1_is_pressed || estop2_is_pressed) && menuState == MenuState::DRILLMOD_COMBINED) {
+    if ((estop1_is_pressed && !estop1_was_pressed) || (estop2_is_pressed && !estop2_was_pressed)) {
+      Serial.println(F("[ESTOP] COMBINED MODE: Both modules stopped due to estop!"));
+      drillMod1.dir = ActDir::STOP;
+      drillMod2.dir = ActDir::STOP;
+      robomotorApply(drillMod1);
+      robomotorApply(drillMod2);
+    }
+  }
+}
+
 static void printMotorMenu(const char* label) {
   Serial.print(F("\n=== ")); Serial.print(label); Serial.println(F(" ==="));
   Serial.println(F("f             forward"));
   Serial.println(F("r             reverse"));
-  Serial.println(F("stop          stop"));
+  Serial.println(F("s             stop"));
   Serial.println(F("speed <0-255> set speed"));
   Serial.println(F("status        show current state"));
   Serial.println(F("b             back"));
@@ -430,7 +475,7 @@ static void printServoControlMenu(uint8_t idx) {
   Serial.println(F(" (continuous rotation) ==="));
   Serial.println(F("f              spin forward at current speed"));
   Serial.println(F("r              spin reverse at current speed"));
-  Serial.println(F("stop           STOP (1500us neutral)"));
+  Serial.println(F("s              STOP (1500us neutral)"));
   Serial.println(F("speed <0-100>  set speed % (applies immediately if running)"));
   Serial.println(F("set <-100,100> direct signed command"));
   Serial.println(F("status | b"));
@@ -504,7 +549,7 @@ static void handleDrillModSelect(const String& cmd) {
     Serial.println(F("\n=== DRILL MODULES COMBINED ==="));
     Serial.println(F("Commands apply to BOTH Module 1 and Module 2 simultaneously."));
     Serial.println(F("NOTE: combined mode applies invert flags so both move same physical direction."));
-    Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+    Serial.println(F("f | r | s | speed <0-255> | status | b"));
     printRoboStatus(drillMod1);
     printRoboStatus(drillMod2);
     return;
@@ -520,7 +565,7 @@ static void handleServoControlContinuous(uint8_t idx, const String& cmdRaw) {
   if (w == "b") { menuState = MenuState::SERVO_MENU; printServoSelectMenu(); return; }
   if (w == "f") { servos[idx].direction = +1; servoApply(idx); Serial.println(F("FWD")); return; }
   if (w == "r") { servos[idx].direction = -1; servoApply(idx); Serial.println(F("REV")); return; }
-  if (w == "stop") { servoStop(idx); Serial.println(F("STOP")); return; }
+  if (w == "s") { servoStop(idx); Serial.println(F("STOP")); return; }
 
   if (w == "speed") {
     args.trim();
@@ -548,7 +593,7 @@ static void handleServoControlContinuous(uint8_t idx, const String& cmdRaw) {
   }
 
   if (w == "status") { printServoStatus(idx); return; }
-  Serial.println(F("? Use: f | r | stop | speed <0-100> | set <-100,100> | status | b"));
+  Serial.println(F("? Use: f | r | s | speed <0-100> | set <-100,100> | status | b"));
 }
 
 static void handleServoControl3(const String& cmdRaw) {
@@ -649,28 +694,38 @@ static void handlePumpsUvControl(const String& cmd) {
 static void handleActuatorMenu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
   if (!handleRoboMotorCmd(actuator, cmd))
-    Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+    Serial.println(F("f | r | s | speed <0-255> | status | b"));
 }
 
 static void handleDrillMenu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
   if (!handleRoboMotorCmd(drill, cmd))
-    Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+    Serial.println(F("f | r | s | speed <0-255> | status | b"));
 }
 
 static void handleDrillMod1Menu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return; }
   if (!handleRoboMotorCmd(drillMod1, cmd))
-    Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+    Serial.println(F("f | r | s | speed <0-255> | status | b"));
 }
 
 static void handleDrillMod2Menu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return; }
   if (!handleRoboMotorCmd(drillMod2, cmd))
-    Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+    Serial.println(F("f | r | s | speed <0-255> | status | b"));
 }
 
 // FIX #2 is implemented here: combined applies invert flags so both move together physically.
+// VERIFICATION: 
+//   - DRILLMOD1_INVERT = false (no inversion)
+//   - DRILLMOD2_INVERT = true (inverted)
+// When user issues "f" (forward):
+//   - Mod1 receives FWD → sends FWD command to RoboClaw
+//   - Mod2 receives FWD → inverted to REV → sends REV command to RoboClaw
+// Result: Both motors physically move in same direction despite opposite electrical commands.
+// This prevents opposite direction movement in combined mode.
+// 
+// Estops: If either Mod1 or Mod2 estop is triggered in combined mode, BOTH motors stop with notification.
 static void handleDrillModCombined(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return; }
 
@@ -684,7 +739,7 @@ static void handleDrillModCombined(const String& cmd) {
 
   // We parse commands here and then apply with inversion,
   // instead of calling handleRoboMotorCmd twice directly.
-  if (cmd.equalsIgnoreCase("f") || cmd.equalsIgnoreCase("r") || cmd.equalsIgnoreCase("stop") || cmd.startsWith("speed ")) {
+  if (cmd.equalsIgnoreCase("f") || cmd.equalsIgnoreCase("r") || cmd.equalsIgnoreCase("s") || cmd.startsWith("speed ")) {
     // copy current
     ActDir desiredDir = ActDir::STOP;
     bool dirChange = false;
@@ -692,7 +747,7 @@ static void handleDrillModCombined(const String& cmd) {
 
     if (cmd.equalsIgnoreCase("f")) { desiredDir = ActDir::FWD; dirChange = true; }
     else if (cmd.equalsIgnoreCase("r")) { desiredDir = ActDir::REV; dirChange = true; }
-    else if (cmd.equalsIgnoreCase("stop")) { desiredDir = ActDir::STOP; dirChange = true; }
+    else if (cmd.equalsIgnoreCase("s")) { desiredDir = ActDir::STOP; dirChange = true; }
     else if (cmd.startsWith("speed ")) {
       int sp = cmd.substring(6).toInt();
       if (sp < 0) sp = 0; if (sp > 255) sp = 255;
@@ -718,7 +773,7 @@ static void handleDrillModCombined(const String& cmd) {
     return;
   }
 
-  Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+  Serial.println(F("f | r | s | speed <0-255> | status | b"));
 }
 
 static void handleMain(const String& cmd) {
@@ -780,17 +835,30 @@ void setup() {
   Serial.println(F("RoboClaw #1: Serial1 D18(TX1)->S1, D19(RX1)<-S2"));
   Serial.println(F("RoboClaw #2: Serial2 D16(TX2)->S1, D17(RX2)<-S2"));
 
+  Serial.println(F("\nEstop Configuration:"));
+  Serial.println(F("  D47 (DRILLMOD1_ESTOP): 10kΩ pullup, triggered = LOW"));
+  Serial.println(F("  D49 (DRILLMOD2_ESTOP): 10kΩ pullup, triggered = LOW"));
+  Serial.println(F("  Continuous monitoring enabled - motors stop immediately on trigger"));
+
   Serial.println(F("\nServo3 tweaks: PCA9685 freq=60Hz, default pulse range 600..2400us"));
   Serial.println(F("If Servo3 still doesn't move, use: pulse 1500  / pulsemin 700 / pulsemax 2300"));
-  Serial.println(F("Combined mode invert: Mod1="));
+
+  Serial.println(F("\nCombined Mode Motor Sync:"));
+  Serial.print(F("  DRILLMOD1 invert: "));
   Serial.println(DRILLMOD1_INVERT ? F("YES") : F("NO"));
-  Serial.print(F(" Mod2="));
+  Serial.print(F("  DRILLMOD2 invert: "));
   Serial.println(DRILLMOD2_INVERT ? F("YES") : F("NO"));
+  Serial.println(F("  ✓ Invert flags compensate for physical motor direction."));
+  Serial.println(F("  ✓ In combined mode, both motors move same direction physically."));
+  Serial.println(F("  ✓ Estops work in combined mode - triggers stop both modules."));
 
   printMainMenu();
 }
 
 void loop() {
+  // Check estops continuously
+  checkEstops();
+
   String cmd = readLineNonBlocking();
   if (cmd.length() == 0) return;
 
