@@ -10628,6 +10628,16 @@
 		)
 		(uuid "88fbdc61-6728-427e-95eb-671868c02048")
 	)
+	(text "Science"
+		(exclude_from_sim no)
+		(at 501.65 75.565 0)
+		(effects
+			(font
+				(size 2.54 2.54)
+			)
+		)
+		(uuid "a071760b-add4-4a7a-afb0-50e8911917d6")
+	)
 	(text "Logic +22.2v\n"
 		(exclude_from_sim no)
 		(at 20.32 16.51 0)
@@ -36805,6 +36815,48 @@
 				(path "/1b548578-061f-412b-9a17-10125f836cd9"
 					(reference "#PWR03")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(sheet
+		(at 428.625 13.97)
+		(size 153.035 122.555)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "63b17e15-f75c-461c-a062-c88732366e9b")
+		(property "Sheetname" "Science"
+			(at 428.625 13.2584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "science.kicad_sch"
+			(at 428.625 137.1096 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "mercury-1"
+				(path "/1b548578-061f-412b-9a17-10125f836cd9"
+					(page "2")
 				)
 			)
 		)
