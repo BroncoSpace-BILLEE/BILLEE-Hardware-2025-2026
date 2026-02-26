@@ -1,59 +1,61 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
+// Things to fix (implemented below)
+// 1) 300 degree servo not working at all  -> change PCA freq to 60Hz + adjust pulse range + add pulse debug command
+// 2) Combined for Module 1 and 2 they are moving in the opposite direction -> add invert flag for one module in combined mode
+
 /*
-  Robot Controller — Elegoo MEGA 2560 R3 + PCA9685
-  =================================================
-  PIN MAP:
-  ┌─────────────────┬──────────────────────────────────────┐
-  │ I2C             │ D20 (SDA), D21 (SCL) → PCA9685       │
-  ├─────────────────┼──────────────────────────────────────┤
-  │ Relays          │ D22 pump1, D23 pump2, D24 pump3       │
-  │                 │ D25 stirrer, D26 uv_led               │
-  ├─────────────────┼──────────────────────────────────────┤
-  │ Linear Actuator │ D2 IN1, D3 IN2, D4 PWM~              │
-  ├─────────────────┼──────────────────────────────────────┤
-  │ Drill           │ D5 IN1, D6 IN2, D7 PWM~              │
-  ├─────────────────┼──────────────────────────────────────┤
-  │ Drill Module 1  │ D8 IN1, D9 IN2, D10 PWM~             │
-  ├─────────────────┼──────────────────────────────────────┤
-  │ Drill Module 2  │ D11 IN1, D12 IN2, D44 PWM~           │  
-  ├─────────────────┼──────────────────────────────────────┤
-  │ PCA9685 ch0-1   │ 360° continuous-rotation servos       │
-  │ PCA9685 ch2     │ 300° positional servo  ← Servo 3      │
-  └─────────────────┴──────────────────────────────────────┘
+  Robot Controller — Elegoo MEGA 2560 R3 + PCA9685 + Dual RoboClaw (Packet Serial)
+  ============================================================================
 
-  Continuous-rotation servo PWM model (servos 1-2):
-    1500 µs = STOP
-    >1500   = forward  (faster toward 2000)
-    <1500   = reverse  (faster toward 1000)
+  Serial Monitor:
+    USB Serial -> Serial (115200)
 
-  Positional servo PWM model (servo 3 — 300° range):
-    500 µs  = 0°   (full CCW)
-    2500 µs = 300° (full CW)
-    1500 µs = 150° (centre)
-    Adjust SERVO3_US_MIN / SERVO3_US_MAX below if your
-    specific servo uses a different pulse range.
+  I2C:
+    D20 SDA, D21 SCL -> PCA9685 @0x40
 
-  All four H-bridges use the same control pattern:
-    f              → forward at current speed
-    r              → reverse at current speed
-    stop           → stop
-    speed <0-255>  → set PWM speed
-    status         → show state
-    b              → back to main menu
+  Relays:
+    D22 pump1, D23 pump2, D25 pump3, D24 stirrer, D26 uv_led
+
+  RoboClaw #1 (Drill + Linear Actuator) [Packet Serial on Serial1]
+    Mega D18(TX1) -> RoboClaw S1(RX)
+    Mega D19(RX1) <- RoboClaw S2(TX)   (optional)
+    GND <-> GND (required!)
+    RoboClaw M1 -> DRILL
+    RoboClaw M2 -> LINEAR ACTUATOR
+
+  RoboClaw #2 (Drill Module 1 + Drill Module 2) [Packet Serial on Serial2]
+    Mega D16(TX2) -> RoboClaw S1(RX)
+    Mega D17(RX2) <- RoboClaw S2(TX)   (optional)
+    GND <-> GND (required!)
+    RoboClaw M1 -> DRILL MODULE 1
+    RoboClaw M2 -> DRILL MODULE 2
+
+  Motion Studio settings (both RoboClaws):
+    Packet Serial Address: 128 (0x80)
+    Baudrate: 2400
+
+  Menu commands for each motor:
+    f | r | stop | speed <0-255> | status | b
+
+  Drill Modules menu extra:
+    test   -> spins Mod1 then Mod2 briefly (RoboClaw #2 sanity test)
+
+  Servo 3 extra debug:
+    pulsemin <us>   -> set servo3 min pulse (persist RAM)
+    pulsemax <us>   -> set servo3 max pulse (persist RAM)
+    pulse <us>      -> write raw pulse (us) to servo3 (for tuning)
 */
 
 // ======================= TYPES =======================
 struct ServoState {
   uint8_t  channel;
-  // --- continuous-rotation fields (servos 1-2) ---
-  int8_t   direction;
-  uint8_t  speedPct;
-  int16_t  commandedPct;
-  // --- positional fields (servo 3) ---
+  int8_t   direction;     // continuous servos: -1 rev, 0 stop, +1 fwd
+  uint8_t  speedPct;      // 0..100
+  int16_t  commandedPct;  // -100..100
   bool     isPositional;
-  uint16_t positionDeg;   // current commanded position, 0-300
+  uint16_t positionDeg;   // 0..300
 };
 
 struct Relay {
@@ -63,14 +65,6 @@ struct Relay {
 };
 
 enum class ActDir { STOP, FWD, REV };
-
-struct HBridge {
-  ActDir  dir;
-  uint8_t speed;
-  uint8_t pinIN1;
-  uint8_t pinIN2;
-  uint8_t pinPWM;
-};
 
 enum class MenuState {
   MAIN,
@@ -85,49 +79,72 @@ enum class MenuState {
 };
 
 // ======================= PIN DEFINITIONS =======================
-#define ACT_IN1        2
-#define ACT_IN2        3
-#define ACT_PWM        4
-#define DRILL_IN1      5
-#define DRILL_IN2      6
-#define DRILL_PWM      7
-#define DRILLMOD1_IN1  8
-#define DRILLMOD1_IN2  9
-#define DRILLMOD1_PWM  10
-#define DRILLMOD2_IN1  11
-#define DRILLMOD2_IN2  12
-#define DRILLMOD2_PWM  44
-#define DRILLMOD1_ESTOP 13
-#define DRILLMOD2_ESTOP 14
-#define RELAY_PIN_1    22
-#define RELAY_PIN_2    23
-#define RELAY_PIN_3    25
-#define RELAY_PIN_4    24
-#define RELAY_PIN_5    26
+#define DRILLMOD1_ESTOP 47
+#define DRILLMOD2_ESTOP 49
+
+#define RELAY_PIN_1     22
+#define RELAY_PIN_2     23
+#define RELAY_PIN_3     25
+#define RELAY_PIN_4     24
+#define RELAY_PIN_5     26
 
 // ======================= PCA9685 SERVO CONSTANTS =======================
-
-// Continuous-rotation servos (ch 0-1)
 static const uint16_t SERVO_US_STOP  = 1500;
 static const uint16_t SERVO_US_MAX   = 2000;
 static const uint16_t SERVO_US_MIN   = 1000;
 
-// Positional 300-degree servo (ch 2 / Servo 3)
-// Tune these to match your servo's datasheet if needed.
-static const uint16_t SERVO3_US_MIN  =  500;   // pulse at 0 degrees
-static const uint16_t SERVO3_US_MAX  = 2500;   // pulse at 300 degrees
-static const uint16_t SERVO3_DEG_MAX =  300;
+// FIX #1: many “300°” servos behave better with a slightly narrower pulse range.
+// Start here; tune using pulsemin/pulsemax commands if needed.
+static uint16_t SERVO3_US_MIN  =  600;
+static uint16_t SERVO3_US_MAX  = 2400;
+static const uint16_t SERVO3_DEG_MAX = 300;
 
-static const uint16_t SERVO_PWM_FREQ = 50;
+// FIX #1: PCA9685 frequency. 50 works for lots of servos, but many position servos are happier at ~60Hz.
+static const uint16_t SERVO_PWM_FREQ = 60;
+
+// ======================= ROBOCLAW PACKET SERIAL CONSTANTS =======================
+static const uint32_t ROBOCLAW_BAUD = 2400;
+static const uint8_t  RC_ADDR_1 = 0x80; // 128
+static const uint8_t  RC_ADDR_2 = 0x80; // 128 (OK because different UART)
+
+// FIX #2: one module is physically reversed relative to the other.
+// In COMBINED mode only, invert one so they move together.
+// If your combined mode still fights, flip this to the other motor.
+static const bool DRILLMOD1_INVERT = false;
+static const bool DRILLMOD2_INVERT = true;
+
+// ======================= ROBOCLAW TYPES =======================
+struct RoboMotor {
+  const char* label;
+  Stream* port;
+  uint8_t addr;
+  uint8_t motorIndex; // 1=M1, 2=M2
+  ActDir dir;
+  uint8_t speed;      // 0..255
+};
+
+// Forward declarations
+static void robomotorApply(RoboMotor &m);
+static void printRoboStatus(RoboMotor &m);
+static bool handleRoboMotorCmd(RoboMotor &m, const String& cmd);
+
+static void printServoSelectMenu();
+static void printServoControlMenu(uint8_t idx);
+static void printServo3ControlMenu();
+static void printServoStatus(uint8_t idx);
+static void printServo3Status();
+static void handleServoSelect(const String& cmd);
+static void handleServoControl(uint8_t idx, const String& cmdRaw);
+static void handlePumpsUvMenu(const String& cmd);
+static void handlePumpsUvControl(const String& cmd);
 
 // ======================= GLOBALS =======================
 Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x40);
 
 ServoState servos[3] = {
-  //  ch  dir  spd  cmdPct  positional  posDeg
-  {   0,   0,   50,   0,    false,      0 },  // Servo 1 — continuous
-  {   1,   0,   50,   0,    false,      0 },  // Servo 2 — continuous
-  {   2,   0,    0,   0,    true,     150 },  // Servo 3 — 300-degree positional (starts centred)
+  {   0,   0,   50,   0,    false,      0 },
+  {   1,   0,   50,   0,    false,      0 },
+  {   2,   0,    0,   0,    true,     150 },
 };
 
 Relay relays[] = {
@@ -139,13 +156,13 @@ Relay relays[] = {
 };
 static const uint8_t RELAY_COUNT = sizeof(relays) / sizeof(relays[0]);
 
-HBridge actuator  = { ActDir::STOP, 150, ACT_IN1,       ACT_IN2,       ACT_PWM       };
-HBridge drill     = { ActDir::STOP, 150, DRILL_IN1,     DRILL_IN2,     DRILL_PWM     };
-HBridge drillMod1 = { ActDir::STOP, 255, DRILLMOD1_IN1, DRILLMOD1_IN2, DRILLMOD1_PWM };  // 255 default; lower with: speed <0-255>
-HBridge drillMod2 = { ActDir::STOP, 255, DRILLMOD2_IN1, DRILLMOD2_IN2, DRILLMOD2_PWM };  // 255 default; lower with: speed <0-255>
+// RoboClaw #1 (Serial1): Drill=M1, Actuator=M2
+RoboMotor drill    = { "DRILL",           &Serial1, RC_ADDR_1, 1, ActDir::STOP, 150 };
+RoboMotor actuator = { "LINEAR ACTUATOR", &Serial1, RC_ADDR_1, 2, ActDir::STOP, 150 };
 
-bool drillMod1_estopPressed = false;
-bool drillMod2_estopPressed = false;
+// RoboClaw #2 (Serial2): DrillMod1=M1, DrillMod2=M2
+RoboMotor drillMod1 = { "DRILL MODULE 1", &Serial2, RC_ADDR_2, 1, ActDir::STOP, 255 };
+RoboMotor drillMod2 = { "DRILL MODULE 2", &Serial2, RC_ADDR_2, 2, ActDir::STOP, 255 };
 
 MenuState menuState = MenuState::MAIN;
 int selectedRelay   = -1;
@@ -157,8 +174,6 @@ static uint16_t usToTicks(uint16_t us) {
   if (t > 4095) t = 4095;
   return (uint16_t)t;
 }
-
-// ---- Continuous-rotation helpers (servos 1-2) ----
 
 static uint16_t pctToServUs(int16_t pct) {
   if (pct >  100) pct =  100;
@@ -195,8 +210,6 @@ static void servoStop(uint8_t idx) {
   servoWritePct(idx, 0);
 }
 
-// ---- Positional 300-degree helpers (servo 3 / idx 2) ----
-
 static uint16_t servo3DegToUs(uint16_t deg) {
   if (deg > SERVO3_DEG_MAX) deg = SERVO3_DEG_MAX;
   return (uint16_t)(SERVO3_US_MIN +
@@ -209,69 +222,48 @@ static void servo3WriteDeg(uint16_t deg) {
   pca.setPWM(servos[2].channel, 0, usToTicks(servo3DegToUs(deg)));
 }
 
-// ======================= E-STOP HELPERS =======================
-static void updateEStops() {
-  drillMod1_estopPressed = (digitalRead(DRILLMOD1_ESTOP) == LOW);
-  drillMod2_estopPressed = (digitalRead(DRILLMOD2_ESTOP) == LOW);
+static void servo3WritePulseUs(uint16_t us) {
+  // raw pulse write for tuning/debug
+  if (us < 400) us = 400;
+  if (us > 2600) us = 2600;
+  pca.setPWM(servos[2].channel, 0, usToTicks(us));
 }
 
-static void enforceEStopLimits() {
-  // Drill Module 1: stop if E-stop active and forward
-  if (drillMod1_estopPressed && drillMod1.dir == ActDir::FWD) {
-    drillMod1.dir = ActDir::STOP;
-    hbridgeApply(drillMod1);
+// ======================= ROBOCLAW PACKET SERIAL (CRC16) =======================
+// Classic Packet Serial:
+//   0: M1 Forward  (1 byte speed 0..127)
+//   1: M1 Backward (1 byte speed 0..127)
+//   4: M2 Forward  (1 byte speed 0..127)
+//   5: M2 Backward (1 byte speed 0..127)
+
+static uint16_t rc_crc16_update(uint16_t crc, uint8_t data) {
+  crc ^= (uint16_t)data << 8;
+  for (uint8_t i = 0; i < 8; i++) {
+    if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
+    else crc <<= 1;
   }
-  
-  // Drill Module 2: stop if E-stop active and forward
-  if (drillMod2_estopPressed && drillMod2.dir == ActDir::FWD) {
-    drillMod2.dir = ActDir::STOP;
-    hbridgeApply(drillMod2);
-  }
+  return crc;
 }
 
-static bool isDrillMod1EStopActive() {
-  if (drillMod1_estopPressed) {
-    Serial.println(F("[E-STOP-1 ACTIVE] Forward motion blocked - only reverse/stop allowed"));
-    return true;
+static void rc_cmd(Stream &s, uint8_t addr, uint8_t cmd, const uint8_t *data, uint8_t dataLen) {
+  uint16_t crc = 0;
+  crc = rc_crc16_update(crc, addr);
+  crc = rc_crc16_update(crc, cmd);
+
+  s.write(addr);
+  s.write(cmd);
+
+  for (uint8_t i = 0; i < dataLen; i++) {
+    s.write(data[i]);
+    crc = rc_crc16_update(crc, data[i]);
   }
-  return false;
+
+  s.write((uint8_t)(crc >> 8));
+  s.write((uint8_t)(crc & 0xFF));
 }
 
-static bool isDrillMod2EStopActive() {
-  if (drillMod2_estopPressed) {
-    Serial.println(F("[E-STOP-2 ACTIVE] Forward motion blocked - only reverse/stop allowed"));
-    return true;
-  }
-  return false;
-}
-
-// ======================= H-BRIDGE HELPERS =======================
-static void hbridgeApply(HBridge &h) {
-  switch (h.dir) {
-    case ActDir::STOP:
-      digitalWrite(h.pinIN1, LOW);
-      digitalWrite(h.pinIN2, LOW);
-      analogWrite(h.pinPWM, 0);        // EN=0 → hard brake, not coast
-      break;
-    case ActDir::FWD:
-      digitalWrite(h.pinIN1, HIGH);
-      digitalWrite(h.pinIN2, LOW);
-      analogWrite(h.pinPWM, h.speed);
-      break;
-    case ActDir::REV:
-      digitalWrite(h.pinIN1, LOW);
-      digitalWrite(h.pinIN2, HIGH);
-      analogWrite(h.pinPWM, h.speed);
-      break;
-  }
-}
-
-static void hbridgeInit(HBridge &h) {
-  pinMode(h.pinIN1, OUTPUT);
-  pinMode(h.pinIN2, OUTPUT);
-  pinMode(h.pinPWM, OUTPUT);
-  h.dir = ActDir::STOP;
-  hbridgeApply(h);
+static uint8_t speed255_to_127(uint8_t sp) {
+  return (uint8_t)((uint16_t)sp * 127U / 255U);
 }
 
 static const __FlashStringHelper* dirStr(ActDir d) {
@@ -283,30 +275,58 @@ static const __FlashStringHelper* dirStr(ActDir d) {
   return F("?");
 }
 
-static void printHBridgeStatus(const char* label, HBridge &h) {
-  Serial.print(label);
-  Serial.print(F(": dir=")); Serial.print(dirStr(h.dir));
-  Serial.print(F(" speed=")); Serial.println(h.speed);
+// Apply optional invert (used for combined mode correction)
+static ActDir maybeInvertDir(ActDir d, bool invert) {
+  if (!invert) return d;
+  if (d == ActDir::FWD) return ActDir::REV;
+  if (d == ActDir::REV) return ActDir::FWD;
+  return ActDir::STOP;
 }
 
-static bool handleHBridge(HBridge &h, const char* label, const String& cmd) {
+static void robomotorApply(RoboMotor &m) {
+  uint8_t sp = (m.dir == ActDir::STOP) ? 0 : speed255_to_127(m.speed);
+
+  uint8_t cmd = 0;
+  if (m.motorIndex == 1) {
+    if      (m.dir == ActDir::FWD) cmd = 0;
+    else if (m.dir == ActDir::REV) cmd = 1;
+    else                           cmd = 0;
+  } else {
+    if      (m.dir == ActDir::FWD) cmd = 4;
+    else if (m.dir == ActDir::REV) cmd = 5;
+    else                           cmd = 4;
+  }
+
+  uint8_t data[1] = { sp };
+  rc_cmd(*m.port, m.addr, cmd, data, 1);
+}
+
+static void printRoboStatus(RoboMotor &m) {
+  Serial.print(m.label);
+  Serial.print(F(": dir=")); Serial.print(dirStr(m.dir));
+  Serial.print(F(" speed=")); Serial.println(m.speed);
+}
+
+static bool handleRoboMotorCmd(RoboMotor &m, const String& cmd) {
   if (cmd.equalsIgnoreCase("f")) {
-    h.dir = ActDir::FWD;  hbridgeApply(h); printHBridgeStatus(label, h); return true;
+    m.dir = ActDir::FWD;  robomotorApply(m); printRoboStatus(m); return true;
   }
   if (cmd.equalsIgnoreCase("r")) {
-    h.dir = ActDir::REV;  hbridgeApply(h); printHBridgeStatus(label, h); return true;
+    m.dir = ActDir::REV;  robomotorApply(m); printRoboStatus(m); return true;
   }
   if (cmd.equalsIgnoreCase("stop")) {
-    h.dir = ActDir::STOP; hbridgeApply(h); printHBridgeStatus(label, h); return true;
+    m.dir = ActDir::STOP; robomotorApply(m); printRoboStatus(m); return true;
   }
   if (cmd.equalsIgnoreCase("status")) {
-    printHBridgeStatus(label, h); return true;
+    printRoboStatus(m); return true;
   }
   if (cmd.startsWith("speed ")) {
     int sp = cmd.substring(6).toInt();
     if (sp < 0) sp = 0; if (sp > 255) sp = 255;
-    h.speed = (uint8_t)sp;
-    hbridgeApply(h); printHBridgeStatus(label, h); return true;
+    m.speed = (uint8_t)sp;
+    robomotorApply(m);
+    printRoboStatus(m);
+    return true;
   }
   return false;
 }
@@ -362,26 +382,38 @@ static void printMainMenu() {
   Serial.println(F("h) Help"));
 }
 
-static void printHBridgeMenu(const char* label) {
+static void printMotorMenu(const char* label) {
   Serial.print(F("\n=== ")); Serial.print(label); Serial.println(F(" ==="));
   Serial.println(F("f             forward"));
   Serial.println(F("r             reverse"));
   Serial.println(F("stop          stop"));
-  Serial.println(F("speed <0-255> set PWM speed"));
+  Serial.println(F("speed <0-255> set speed"));
   Serial.println(F("status        show current state"));
   Serial.println(F("b             back"));
 }
 
-static void printDrillMod1Status() {
-  printHBridgeStatus("DRILL MODULE 1", drillMod1);
-  Serial.print(F("  E-STOP-1: "));
-  Serial.println(drillMod1_estopPressed ? F("[ACTIVE]") : F("(inactive)"));
+static void printDrillModSelectMenu() {
+  Serial.println(F("\n=== DRILL MODULES ==="));
+  Serial.println(F("1) Drill Module 1  (individual)"));
+  Serial.println(F("2) Drill Module 2  (individual)"));
+  Serial.println(F("3) Combined        (both together)"));
+  Serial.println(F("b) Back to main"));
+  Serial.println(F("test              (spin Mod1 then Mod2 briefly)"));
 }
 
-static void printDrillMod2Status() {
-  printHBridgeStatus("DRILL MODULE 2", drillMod2);
-  Serial.print(F("  E-STOP-2: "));
-  Serial.println(drillMod2_estopPressed ? F("[ACTIVE]") : F("(inactive)"));
+static void drillModulesTest() {
+  Serial.println(F("[TEST] RoboClaw #2 Mod1 forward @120 for 1s"));
+  drillMod1.speed = 120; drillMod1.dir = ActDir::FWD; robomotorApply(drillMod1);
+  delay(1000);
+  drillMod1.dir = ActDir::STOP; robomotorApply(drillMod1);
+  delay(250);
+
+  Serial.println(F("[TEST] RoboClaw #2 Mod2 forward @120 for 1s"));
+  drillMod2.speed = 120; drillMod2.dir = ActDir::FWD; robomotorApply(drillMod2);
+  delay(1000);
+  drillMod2.dir = ActDir::STOP; robomotorApply(drillMod2);
+
+  Serial.println(F("[TEST] Done"));
 }
 
 static void printServoSelectMenu() {
@@ -410,23 +442,33 @@ static void printServoControlMenu(uint8_t idx) {
 static void printServo3ControlMenu() {
   ServoState &s = servos[2];
   Serial.println(F("\n=== SERVO 3 (300-degree positional) ==="));
-  Serial.println(F("pos <0-300>  move to angle in degrees"));
-  Serial.println(F("centre       move to 150 deg (centre)"));
-  Serial.println(F("min          move to 0 deg   (full CCW)"));
-  Serial.println(F("max          move to 300 deg (full CW)"));
-  Serial.println(F("status       show current position"));
-  Serial.println(F("b            back"));
+  Serial.println(F("pos <0-300>      move to angle in degrees"));
+  Serial.println(F("centre           move to 150 deg (centre)"));
+  Serial.println(F("min              move to 0 deg   (full CCW)"));
+  Serial.println(F("max              move to 300 deg (full CW)"));
+  Serial.println(F("pulse <us>       write raw pulse width (debug)"));
+  Serial.println(F("pulsemin <us>    set servo3 min pulse (default 600)"));
+  Serial.println(F("pulsemax <us>    set servo3 max pulse (default 2400)"));
+  Serial.println(F("status           show current position + pulses"));
+  Serial.println(F("b                back"));
   Serial.print(F("Now: pos="));  Serial.print(s.positionDeg);
   Serial.print(F("deg ("));      Serial.print(servo3DegToUs(s.positionDeg));
   Serial.println(F("us)"));
+  Serial.print(F("Range: ")); Serial.print(SERVO3_US_MIN);
+  Serial.print(F("..")); Serial.print(SERVO3_US_MAX);
+  Serial.println(F("us"));
 }
 
 static void printServo3Status() {
   ServoState &s = servos[2];
-  Serial.print(F("S3 [300-deg positional]: pos="));
+  Serial.print(F("S3: pos="));
   Serial.print(s.positionDeg);
   Serial.print(F("deg  pulse="));
   Serial.print(servo3DegToUs(s.positionDeg));
+  Serial.print(F("us  range="));
+  Serial.print(SERVO3_US_MIN);
+  Serial.print(F(".."));
+  Serial.print(SERVO3_US_MAX);
   Serial.println(F("us"));
 }
 
@@ -451,60 +493,35 @@ static void printPumpsUvMenu() {
 }
 
 // ======================= COMMAND HANDLERS =======================
-
-static void printDrillModSelectMenu() {
-  Serial.println(F("\n=== DRILL MODULES ==="));
-  Serial.println(F("1) Drill Module 1  (individual)"));
-  Serial.println(F("2) Drill Module 2  (individual)"));
-  Serial.println(F("3) Combined        (both together)"));
-  Serial.println(F("b) Back to main"));
-}
-
 static void handleDrillModSelect(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
-  if (cmd == "1") {
-    menuState = MenuState::DRILLMOD1_MENU;
-    printHBridgeMenu("DRILL MODULE 1"); printDrillMod1Status(); return;
-  }
-  if (cmd == "2") {
-    menuState = MenuState::DRILLMOD2_MENU;
-    printHBridgeMenu("DRILL MODULE 2"); printDrillMod2Status(); return;
-  }
+  if (cmd.equalsIgnoreCase("test")) { drillModulesTest(); return; }
+
+  if (cmd == "1") { menuState = MenuState::DRILLMOD1_MENU; printMotorMenu("DRILL MODULE 1"); printRoboStatus(drillMod1); return; }
+  if (cmd == "2") { menuState = MenuState::DRILLMOD2_MENU; printMotorMenu("DRILL MODULE 2"); printRoboStatus(drillMod2); return; }
   if (cmd == "3") {
     menuState = MenuState::DRILLMOD_COMBINED;
     Serial.println(F("\n=== DRILL MODULES COMBINED ==="));
     Serial.println(F("Commands apply to BOTH Module 1 and Module 2 simultaneously."));
+    Serial.println(F("NOTE: combined mode applies invert flags so both move same physical direction."));
     Serial.println(F("f | r | stop | speed <0-255> | status | b"));
-    printDrillMod1Status();
-    printDrillMod2Status();
+    printRoboStatus(drillMod1);
+    printRoboStatus(drillMod2);
     return;
   }
-  Serial.println(F("Pick 1/2/3 or b"));
+  Serial.println(F("Pick 1/2/3, test, or b"));
 }
 
-// Handler for continuous-rotation servos (idx 0-1)
 static void handleServoControlContinuous(uint8_t idx, const String& cmdRaw) {
   String word, args;
   splitCmd(cmdRaw, word, args);
   String w = lowerTrim(word);
 
   if (w == "b") { menuState = MenuState::SERVO_MENU; printServoSelectMenu(); return; }
+  if (w == "f") { servos[idx].direction = +1; servoApply(idx); Serial.println(F("FWD")); return; }
+  if (w == "r") { servos[idx].direction = -1; servoApply(idx); Serial.println(F("REV")); return; }
+  if (w == "stop") { servoStop(idx); Serial.println(F("STOP")); return; }
 
-  if (w == "f") {
-    servos[idx].direction = +1; servoApply(idx);
-    Serial.print(F("FWD ")); Serial.print(servos[idx].speedPct);
-    Serial.print(F("% -> ")); Serial.print(pctToServUs(servos[idx].commandedPct));
-    Serial.println(F("us")); return;
-  }
-  if (w == "r") {
-    servos[idx].direction = -1; servoApply(idx);
-    Serial.print(F("REV ")); Serial.print(servos[idx].speedPct);
-    Serial.print(F("% -> ")); Serial.print(pctToServUs(servos[idx].commandedPct));
-    Serial.println(F("us")); return;
-  }
-  if (w == "stop") {
-    servoStop(idx); Serial.println(F("STOP -> 1500us")); return;
-  }
   if (w == "speed") {
     args.trim();
     if (args.length() == 0 || !isInteger(args)) { Serial.println(F("ERR: speed <0-100>")); return; }
@@ -512,12 +529,10 @@ static void handleServoControlContinuous(uint8_t idx, const String& cmdRaw) {
     if (v < 0) v = 0; if (v > 100) v = 100;
     servos[idx].speedPct = (uint8_t)v;
     if (servos[idx].direction != 0) servoApply(idx);
-    Serial.print(F("speed=")); Serial.print(v); Serial.print(F("%"));
-    if (servos[idx].direction != 0) {
-      Serial.print(F(" -> ")); Serial.print(pctToServUs(servos[idx].commandedPct)); Serial.print(F("us"));
-    }
-    Serial.println(); return;
+    Serial.print(F("speed=")); Serial.print(v); Serial.println(F("%"));
+    return;
   }
+
   if (w == "set") {
     args.trim();
     if (args.length() == 0 || !isInteger(args)) { Serial.println(F("ERR: set <-100..100>")); return; }
@@ -528,62 +543,69 @@ static void handleServoControlContinuous(uint8_t idx, const String& cmdRaw) {
     else if (v < 0) { servos[idx].direction = -1; servos[idx].speedPct = (uint8_t)-v; }
     else            { servos[idx].direction =  0; servos[idx].speedPct = 0; }
     servoWritePct(idx, (int16_t)v);
-    Serial.print(F("set ")); Serial.print(v);
-    Serial.print(F("% -> ")); Serial.print(pctToServUs((int16_t)v));
-    Serial.println(F("us")); return;
+    Serial.print(F("set ")); Serial.println(v);
+    return;
   }
-  if (w == "status") { printServoStatus(idx); return; }
 
+  if (w == "status") { printServoStatus(idx); return; }
   Serial.println(F("? Use: f | r | stop | speed <0-100> | set <-100,100> | status | b"));
 }
 
-// Handler for the 300-degree positional servo (idx 2)
 static void handleServoControl3(const String& cmdRaw) {
   String word, args;
   splitCmd(cmdRaw, word, args);
   String w = lowerTrim(word);
 
   if (w == "b") { menuState = MenuState::SERVO_MENU; printServoSelectMenu(); return; }
+  if (w == "centre" || w == "center") { servo3WriteDeg(150); Serial.println(F("Moved to 150deg")); return; }
+  if (w == "min") { servo3WriteDeg(0); Serial.println(F("Moved to 0deg")); return; }
+  if (w == "max") { servo3WriteDeg(SERVO3_DEG_MAX); Serial.println(F("Moved to 300deg")); return; }
 
-  if (w == "centre" || w == "center") {
-    servo3WriteDeg(150);
-    Serial.print(F("Moved to 150deg -> "));
-    Serial.print(servo3DegToUs(150)); Serial.println(F("us"));
-    return;
-  }
-  if (w == "min") {
-    servo3WriteDeg(0);
-    Serial.print(F("Moved to 0deg -> "));
-    Serial.print(servo3DegToUs(0)); Serial.println(F("us"));
-    return;
-  }
-  if (w == "max") {
-    servo3WriteDeg(SERVO3_DEG_MAX);
-    Serial.print(F("Moved to ")); Serial.print(SERVO3_DEG_MAX);
-    Serial.print(F("deg -> ")); Serial.print(servo3DegToUs(SERVO3_DEG_MAX));
-    Serial.println(F("us"));
-    return;
-  }
   if (w == "pos") {
     args.trim();
-    if (args.length() == 0 || !isInteger(args)) {
-      Serial.println(F("ERR: pos <0-300>")); return;
-    }
+    if (args.length() == 0 || !isInteger(args)) { Serial.println(F("ERR: pos <0-300>")); return; }
     int v = args.toInt();
     if (v < 0) v = 0;
     if (v > (int)SERVO3_DEG_MAX) v = (int)SERVO3_DEG_MAX;
     servo3WriteDeg((uint16_t)v);
-    Serial.print(F("Moved to ")); Serial.print(v);
-    Serial.print(F("deg -> ")); Serial.print(servo3DegToUs((uint16_t)v));
-    Serial.println(F("us"));
+    Serial.print(F("Moved to ")); Serial.print(v); Serial.println(F("deg"));
     return;
   }
-  if (w == "status") { printServo3Status(); return; }
 
-  Serial.println(F("? Use: pos <0-300> | centre | min | max | status | b"));
+  // NEW: tuning helpers
+  if (w == "pulse") {
+    args.trim();
+    if (args.length() == 0 || !isInteger(args)) { Serial.println(F("ERR: pulse <us>")); return; }
+    int us = args.toInt();
+    servo3WritePulseUs((uint16_t)us);
+    Serial.print(F("Pulse=")); Serial.print(us); Serial.println(F("us"));
+    return;
+  }
+  if (w == "pulsemin") {
+    args.trim();
+    if (args.length() == 0 || !isInteger(args)) { Serial.println(F("ERR: pulsemin <us>")); return; }
+    int us = args.toInt();
+    if (us < 400) us = 400;
+    if (us > (int)SERVO3_US_MAX - 50) us = (int)SERVO3_US_MAX - 50;
+    SERVO3_US_MIN = (uint16_t)us;
+    Serial.print(F("SERVO3_US_MIN=")); Serial.println(SERVO3_US_MIN);
+    return;
+  }
+  if (w == "pulsemax") {
+    args.trim();
+    if (args.length() == 0 || !isInteger(args)) { Serial.println(F("ERR: pulsemax <us>")); return; }
+    int us = args.toInt();
+    if (us > 2600) us = 2600;
+    if (us < (int)SERVO3_US_MIN + 50) us = (int)SERVO3_US_MIN + 50;
+    SERVO3_US_MAX = (uint16_t)us;
+    Serial.print(F("SERVO3_US_MAX=")); Serial.println(SERVO3_US_MAX);
+    return;
+  }
+
+  if (w == "status") { printServo3Status(); return; }
+  Serial.println(F("? Use: pos <0-300> | centre | min | max | pulse <us> | pulsemin <us> | pulsemax <us> | status | b"));
 }
 
-// Dispatcher: routes to the correct handler based on which servo is active
 static void handleServoControl(uint8_t idx, const String& cmdRaw) {
   if (idx == 2) handleServoControl3(cmdRaw);
   else          handleServoControlContinuous(idx, cmdRaw);
@@ -626,64 +648,77 @@ static void handlePumpsUvControl(const String& cmd) {
 
 static void handleActuatorMenu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
-  if (!handleHBridge(actuator, "ACTUATOR", cmd))
+  if (!handleRoboMotorCmd(actuator, cmd))
     Serial.println(F("f | r | stop | speed <0-255> | status | b"));
 }
 
 static void handleDrillMenu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::MAIN; printMainMenu(); return; }
-  if (!handleHBridge(drill, "DRILL", cmd))
+  if (!handleRoboMotorCmd(drill, cmd))
     Serial.println(F("f | r | stop | speed <0-255> | status | b"));
 }
 
 static void handleDrillMod1Menu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return; }
-  
-  // Block forward command if E-stop is active
-  if (cmd.equalsIgnoreCase("f")) {
-    if (isDrillMod1EStopActive()) return;
-  }
-  
-  if (cmd.equalsIgnoreCase("status")) { printDrillMod1Status(); return; }
-  
-  if (!handleHBridge(drillMod1, "DRILL MODULE 1", cmd))
+  if (!handleRoboMotorCmd(drillMod1, cmd))
     Serial.println(F("f | r | stop | speed <0-255> | status | b"));
 }
 
 static void handleDrillMod2Menu(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return; }
-  
-  // Block forward command if E-stop is active
-  if (cmd.equalsIgnoreCase("f")) {
-    if (isDrillMod2EStopActive()) return;
-  }
-  
-  if (cmd.equalsIgnoreCase("status")) { printDrillMod2Status(); return; }
-  
-  if (!handleHBridge(drillMod2, "DRILL MODULE 2", cmd))
+  if (!handleRoboMotorCmd(drillMod2, cmd))
     Serial.println(F("f | r | stop | speed <0-255> | status | b"));
 }
 
+// FIX #2 is implemented here: combined applies invert flags so both move together physically.
 static void handleDrillModCombined(const String& cmd) {
   if (cmd == "b") { menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return; }
-  
+
   if (cmd.equalsIgnoreCase("status")) {
-    printDrillMod1Status();
-    printDrillMod2Status();
+    printRoboStatus(drillMod1);
+    printRoboStatus(drillMod2);
+    Serial.print(F("Combined invert: Mod1=")); Serial.print(DRILLMOD1_INVERT ? F("YES") : F("NO"));
+    Serial.print(F(" Mod2=")); Serial.println(DRILLMOD2_INVERT ? F("YES") : F("NO"));
     return;
   }
-  
-  // Block forward command if EITHER E-stop is active
-  if (cmd.equalsIgnoreCase("f")) {
-    bool estop1 = isDrillMod1EStopActive();
-    bool estop2 = isDrillMod2EStopActive();
-    if (estop1 || estop2) return;
+
+  // We parse commands here and then apply with inversion,
+  // instead of calling handleRoboMotorCmd twice directly.
+  if (cmd.equalsIgnoreCase("f") || cmd.equalsIgnoreCase("r") || cmd.equalsIgnoreCase("stop") || cmd.startsWith("speed ")) {
+    // copy current
+    ActDir desiredDir = ActDir::STOP;
+    bool dirChange = false;
+    bool speedChange = false;
+
+    if (cmd.equalsIgnoreCase("f")) { desiredDir = ActDir::FWD; dirChange = true; }
+    else if (cmd.equalsIgnoreCase("r")) { desiredDir = ActDir::REV; dirChange = true; }
+    else if (cmd.equalsIgnoreCase("stop")) { desiredDir = ActDir::STOP; dirChange = true; }
+    else if (cmd.startsWith("speed ")) {
+      int sp = cmd.substring(6).toInt();
+      if (sp < 0) sp = 0; if (sp > 255) sp = 255;
+      drillMod1.speed = (uint8_t)sp;
+      drillMod2.speed = (uint8_t)sp;
+      speedChange = true;
+    }
+
+    if (dirChange) {
+      drillMod1.dir = maybeInvertDir(desiredDir, DRILLMOD1_INVERT);
+      drillMod2.dir = maybeInvertDir(desiredDir, DRILLMOD2_INVERT);
+    }
+
+    // apply both
+    robomotorApply(drillMod1);
+    robomotorApply(drillMod2);
+
+    if (dirChange || speedChange) {
+      Serial.println(F("[COMBINED] Applied to both modules (with invert correction)."));
+      printRoboStatus(drillMod1);
+      printRoboStatus(drillMod2);
+    }
+    return;
   }
-  
-  bool ok1 = handleHBridge(drillMod1, "DRILL MODULE 1", cmd);
-  bool ok2 = handleHBridge(drillMod2, "DRILL MODULE 2", cmd);
-  if (!ok1 && !ok2)
-    Serial.println(F("f | r | stop | speed <0-255> | status | b"));
+
+  Serial.println(F("f | r | stop | speed <0-255> | status | b"));
 }
 
 static void handleMain(const String& cmd) {
@@ -695,11 +730,11 @@ static void handleMain(const String& cmd) {
   }
   if (cmd == "3" || cmd.equalsIgnoreCase("actuator") || cmd.equalsIgnoreCase("linear")) {
     menuState = MenuState::ACTUATOR_MENU;
-    printHBridgeMenu("LINEAR ACTUATOR"); printHBridgeStatus("ACTUATOR", actuator); return;
+    printMotorMenu("LINEAR ACTUATOR"); printRoboStatus(actuator); return;
   }
   if (cmd == "4" || cmd.equalsIgnoreCase("drill")) {
     menuState = MenuState::DRILL_MENU;
-    printHBridgeMenu("DRILL"); printHBridgeStatus("DRILL", drill); return;
+    printMotorMenu("DRILL"); printRoboStatus(drill); return;
   }
   if (cmd == "5" || cmd.equalsIgnoreCase("drillmodules") || cmd.equalsIgnoreCase("drill modules")) {
     menuState = MenuState::DRILLMOD_SELECT; printDrillModSelectMenu(); return;
@@ -713,14 +748,15 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
 
+  Serial1.begin(ROBOCLAW_BAUD); // D18/D19
+  Serial2.begin(ROBOCLAW_BAUD); // D16/D17
+  delay(200);
+
   pca.begin();
   pca.setPWMFreq(SERVO_PWM_FREQ);
   delay(10);
 
-  // Stop continuous-rotation servos (ch 0-1)
   for (uint8_t i = 0; i < 2; i++) servoStop(i);
-
-  // Send positional servo 3 to its starting position (150 deg centre)
   servo3WriteDeg(servos[2].positionDeg);
 
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
@@ -729,29 +765,32 @@ void setup() {
     applyRelay(i);
   }
 
-  hbridgeInit(actuator);
-  hbridgeInit(drill);
-  hbridgeInit(drillMod1);
-  hbridgeInit(drillMod2);
-
+  // You said you aren't using E-stops right now; keep inputs pulled up to avoid floating
   pinMode(DRILLMOD1_ESTOP, INPUT_PULLUP);
   pinMode(DRILLMOD2_ESTOP, INPUT_PULLUP);
 
-  Serial.println(F("\n=== System Ready (Elegoo MEGA 2560) ==="));
-  Serial.println(F("PCA9685 ch0-1   : continuous-rotation servos (I2C: D20 SDA, D21 SCL)"));
-  Serial.println(F("PCA9685 ch2     : 300-degree positional servo"));
-  Serial.println(F("Relays          : D22-D26"));
-  Serial.println(F("Linear Actuator : D2(IN1) D3(IN2) D4(PWM)"));
-  Serial.println(F("Drill           : D5(IN1) D6(IN2) D7(PWM)"));
-  Serial.println(F("Drill Module 1  : D8(IN1) D9(IN2) D10(PWM) | E-STOP: D13"));
-  Serial.println(F("Drill Module 2  : D11(IN1) D12(IN2) D44(PWM) | E-STOP: D14"));
+  // Stop all motors at boot
+  drill.dir = ActDir::STOP;        robomotorApply(drill);
+  actuator.dir = ActDir::STOP;     robomotorApply(actuator);
+  drillMod1.dir = ActDir::STOP;    robomotorApply(drillMod1);
+  drillMod2.dir = ActDir::STOP;    robomotorApply(drillMod2);
+
+  Serial.println(F("\n=== System Ready (MEGA 2560 + Dual RoboClaw Packet Serial) ==="));
+  Serial.println(F("Packet Serial addr=128 (0x80), baud=2400"));
+  Serial.println(F("RoboClaw #1: Serial1 D18(TX1)->S1, D19(RX1)<-S2"));
+  Serial.println(F("RoboClaw #2: Serial2 D16(TX2)->S1, D17(RX2)<-S2"));
+
+  Serial.println(F("\nServo3 tweaks: PCA9685 freq=60Hz, default pulse range 600..2400us"));
+  Serial.println(F("If Servo3 still doesn't move, use: pulse 1500  / pulsemin 700 / pulsemax 2300"));
+  Serial.println(F("Combined mode invert: Mod1="));
+  Serial.println(DRILLMOD1_INVERT ? F("YES") : F("NO"));
+  Serial.print(F(" Mod2="));
+  Serial.println(DRILLMOD2_INVERT ? F("YES") : F("NO"));
+
   printMainMenu();
 }
 
 void loop() {
-  updateEStops();
-  enforceEStopLimits();
-  
   String cmd = readLineNonBlocking();
   if (cmd.length() == 0) return;
 
