@@ -1,7 +1,7 @@
-# BILLEE URC 2025/2026 Hardware Architecture Design Implementation
+# BILLEE URC 2025/2026 Hardware Architecture Design
+
+Schematic for URC 2026 Rover
+Program to run Science Module
+Serial Parser for Linux to use for Science Module
 
 
-Migrated to
-https://github.com/orgs/BroncoSpace-BILLEE/repositories
-
-Forked to BroncoSpace-BILLEE/repositories
